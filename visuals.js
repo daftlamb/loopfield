@@ -9,8 +9,8 @@ const palettes={
 const captions={cat:'CAT / 猫与球',horse:'HORSE / 奔跑练习',sheep:'SHEEP / 一只又一只',spectrum:'SPECTRAL TERRAIN',fish:'GOLDFISH / 水中漫游',rain:'RAIN / 雨落街角',city:'CITY / 夜间放送'};
 export function startVisuals(engine){
   const $=s=>document.querySelector(s),canvas=$('#visual'),ctx=canvas.getContext('2d');
-  let prefs={palette:'paper',scene:'cat',mode:'line',sensitivity:1.4};
-  try{const p=JSON.parse(localStorage.getItem('loopfield-visuals-v1'));if(p){if(palettes[p.palette])prefs.palette=p.palette;if(captions[p.scene])prefs.scene=p.scene;if(['ascii','pixel','line'].includes(p.mode))prefs.mode=p.mode;if(Number.isFinite(p.sensitivity)&&p.sensitivity>=0.5&&p.sensitivity<=3)prefs.sensitivity=p.sensitivity;}}catch{}
+  let prefs={palette:'paper',scene:'cat',mode:'ascii',sensitivity:1.4};
+  try{const p=JSON.parse(localStorage.getItem('loopfield-visuals-v1'));if(p){if(palettes[p.palette])prefs.palette=p.palette;if(captions[p.scene])prefs.scene=p.scene;if(['ascii','pixel'].includes(p.mode))prefs.mode=p.mode;if(Number.isFinite(p.sensitivity)&&p.sensitivity>=0.5&&p.sensitivity<=3)prefs.sensitivity=p.sensitivity;}}catch{}
   const animalCanvas=document.createElement('canvas');animalCanvas.width=576;animalCanvas.height=432;const animalCtx=animalCanvas.getContext('2d',{willReadFrequently:true});
   let phase=0;
   let colors,energy=0,low=0,high=0,time=0,last=0,lastDraw=0;
@@ -18,14 +18,12 @@ export function startVisuals(engine){
   const chars=Array(64*32).fill(' '),tones=new Uint8Array(64*32);
   function settings(){
     colors=palettes[prefs.palette];['paper','ink','muted','line','accent','screen','light','shade'].forEach((k,i)=>document.documentElement.style.setProperty('--'+k,colors[i]));
-    if(!['cat','horse','sheep'].includes(prefs.scene)&&prefs.mode==='line')prefs.mode='ascii';
-    $('#visualModes [data-visual=line]').hidden=!['cat','horse','sheep'].includes(prefs.scene);
     $('#palette').value=prefs.palette;$('#scene').value=prefs.scene;$('#sensitivity').value=prefs.sensitivity;
     [...$('#visualModes').children].forEach(b=>b.classList.toggle('active',b.dataset.visual===prefs.mode));
     $('#visualCaption').textContent=prefs.mode.toUpperCase()+' / '+captions[prefs.scene];
   }
   function save(){settings();try{localStorage.setItem('loopfield-visuals-v1',JSON.stringify(prefs));}catch{}}
-  $('#palette').onchange=e=>{prefs.palette=e.target.value;save();};$('#scene').onchange=e=>{prefs.scene=e.target.value;if(['cat','horse','sheep'].includes(prefs.scene))prefs.mode='line';save();};
+  $('#palette').onchange=e=>{prefs.palette=e.target.value;save();};$('#scene').onchange=e=>{prefs.scene=e.target.value;save();};
   $('#visualModes').onclick=e=>{if(e.target.dataset.visual){prefs.mode=e.target.dataset.visual;save();}};
   $('#sensitivity').oninput=e=>{prefs.sensitivity=Number(e.target.value);save();};settings();
   function put(x,y,ch,tone=1){x=Math.round(x);y=Math.round(y);if(x>=0&&x<64&&y>=0&&y<32){chars[y*64+x]=ch;tones[y*64+x]=tone;}}
@@ -79,10 +77,9 @@ export function startVisuals(engine){
     chars.fill(' ');tones.fill(0);
     if(animal){
       drawAnimal(animalCtx,prefs.scene,phase,Math.min(1,energy*prefs.sensitivity*12),colors);
-      if(prefs.mode!=='line'){const pixels=animalCtx.getImageData(0,0,576,432).data;for(let y=0;y<32;y++)for(let x=0;x<64;x++){let strongest=0,tone=1;for(let dy=0;dy<12;dy++)for(let dx=0;dx<9;dx++){const i=((y*12+20+dy)*576+x*9+dx)*4;if(pixels[i+3]>strongest){strongest=pixels[i+3];tone=Math.abs(pixels[i]-parseInt(colors[4].slice(1,3),16))<5?3:1;}}if(strongest>70)put(x,y,'+',tone);}}
+      {const pixels=animalCtx.getImageData(0,0,576,432).data;for(let y=0;y<32;y++)for(let x=0;x<64;x++){let strongest=0,tone=1;for(let dy=0;dy<12;dy++)for(let dx=0;dx<9;dx++){const i=((y*12+20+dy)*576+x*9+dx)*4;if(pixels[i+3]>strongest){strongest=pixels[i+3];tone=Math.abs(pixels[i]-parseInt(colors[4].slice(1,3),16))<5?3:1;}}if(strongest>70)put(x,y,'+',tone);}}
     }else if(prefs.scene==='fish')fishScene();else if(prefs.scene==='rain')rainScene();else if(prefs.scene==='city')cityScene();else spectrum();
     ctx.fillStyle=colors[5];ctx.fillRect(0,0,576,432);ctx.font='12px "Loop Pixel",monospace';ctx.textAlign='center';
-    if(animal&&prefs.mode==='line'){ctx.drawImage(animalCanvas,0,0);return;}
     for(let y=0;y<32;y++)for(let x=0;x<64;x++){const i=y*64+x;if(chars[i]===' ')continue;ctx.fillStyle=tones[i]===3?colors[4]:tones[i]===2?colors[7]:colors[6];if(prefs.mode==='ascii')ctx.fillText(chars[i],x*9+4,y*12+30);else ctx.fillRect(x*9+1,y*12+20,tones[i]===2?4:7,tones[i]===2?4:9);}
   }
   requestAnimationFrame(draw);
