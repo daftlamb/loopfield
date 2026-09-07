@@ -1,6 +1,6 @@
 import {setupMobile} from './mobile.js';
 import {startVisuals} from './visuals.js';
-import {makeProject,validateProject,noteName,clone,STEPS,toggleSolo,transformNotes,patternName,addPattern,songOrder} from './model.js';
+import {makeProject,makeEmptyProject,validateProject,noteName,clone,STEPS,toggleSolo,transformNotes,patternName,addPattern,songOrder} from './model.js';
 import {Engine,renderWav} from './audio.js';
 import {fxSpecs,fxValue} from './fx-model.js';
 const $=s=>document.querySelector(s),key='loopfield-project-v1';
@@ -132,3 +132,11 @@ setupMobile({
 });
 
 $('#mobileSwing').oninput=()=>{project.swing=Number($('#mobileSwing').value);$('#swing').value=project.swing;$('#swingValue').textContent=project.swing+'%';$('#mobileSwingValue').textContent=project.swing+'%';save();};
+
+$('#allReset').onclick=()=>$('#resetDialog').showModal();
+$('#cancelReset').onclick=()=>$('#resetDialog').close();
+$('#confirmReset').onclick=async()=>{
+  const button=$('#confirmReset');button.disabled=true;
+  try{await stop();checkpoint();project=makeEmptyProject();track=0;selected=0;stepPage=0;$('#fxTarget').value='master';renderProject();save();$('#resetDialog').close();toast('已全部清空 · 可在工具中撤销');}
+  finally{button.disabled=false;}
+};

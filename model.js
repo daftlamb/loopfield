@@ -58,3 +58,5 @@ export const patternName=i=>String.fromCharCode(65+i);
 export function songOrder(p){return p.song.flatMap((row,index)=>Array.from({length:row.repeats},(_,repeat)=>({pattern:row.pattern,row:index,repeat})));}
 export function nextSongPosition(p,position){const order=songOrder(p);return position+1<order.length?position+1:p.songLoop?0:null;}
 export function addPattern(p,copy=false){if(p.patterns.length>=16)return false;const tracks=clone(p.patterns[p.pattern]);if(!copy)for(const t of tracks)for(const s of t.steps)s.on=false;p.patterns.push(tracks);p.pattern=p.patterns.length-1;return true;}
+
+export function makeEmptyProject(){const p=makeProject();p.name='Untitled sketch';for(const tracks of p.patterns)for(const t of tracks)for(const s of t.steps)s.on=false;return p;}

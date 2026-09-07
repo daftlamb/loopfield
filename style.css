@@ -71,3 +71,5 @@ dialog{color:var(--ink);background:var(--paper);border:1px solid var(--ink);max-
   #toolsDialog{max-height:calc(100dvh - 40px);overflow:auto;padding:14px}.pitchTools{margin-bottom:0}
 }
 @media(max-width:760px) and (max-height:600px){.sequencePanel .sectionhead{min-height:28px}.patternBar{height:32px}.stepPages{height:28px}.sequencePanel .grid{gap:4px 8px;padding:4px 0}.step small{font-size:8px}.step .value{font-size:13px}.sequencePanel .stepedit{min-height:80px}.stepedit label{min-height:35px}.sequencePanel .gridtools{height:32px;min-height:32px}.sequencePanel .gridtools .tabs button{min-height:30px}}
+
+#allReset{color:var(--accent)}#resetDialog{max-width:440px;max-height:calc(100dvh - 40px);overflow:auto}#resetDialog h2{font-size:20px;font-weight:normal}#resetDialog p{font-size:14px;line-height:1.8}.resetActions{display:flex;justify-content:flex-end;gap:12px;margin-top:20px}.resetActions button{min-height:44px;border:1px solid var(--line);padding:10px 16px}#confirmReset{background:var(--accent);color:var(--paper)}
