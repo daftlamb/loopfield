@@ -1,0 +1,100 @@
+export const memeCaptions={memeCat:'CAT / 今天也不想上班',memeDance:'DANCE / 脑内循环',memeMoon:'MAGIC / 给生活加点魔法',memeBird:'BIRD / 假装听懂了',memeFace:'FACE / 你继续说'};
+export function drawMeme(scene,phase,energy,text,put){
+  const beat=Math.floor(phase*2)%2,bounce=Math.round(Math.max(0,Math.sin(phase*Math.PI*2))*(1+energy*3));
+  const sprite=(x,y,rows,tone=1)=>rows.split('\n').forEach((row,i)=>text(x,y+i,row,tone));
+  if(scene==='memeCat'){
+    sprite(13,8-bounce,beat?String.raw`   ~
+  (  )
+   ) )      .------.      A___A
+  ( (     .'        '.   / o o \
+   \ \___/            \_/  =w= |
+    \                 /  .___/
+     |      .----.   /   /
+     |     /     |  /   /
+     /  / /      | |  | |
+    (__(__)      (_(__(_/`:String.raw`    _
+   ( \
+    ) )     .------.      A___A
+   ( (    .'        '.   / - - \
+    \ \__/            \_/  =w= |
+     \                /  .___/
+      |     .----.   /   /
+      |    /     |  /   /
+     / /  /      | | | |
+    (_(__/       (_(_(_/`);
+    text(23,25,'NO THOUGHTS. JUST BASS.',2);
+  }else if(scene==='memeDance'){
+    sprite(23+beat,8-bounce,beat?String.raw`       /\_/\
+  >>  ( o.o )  <<
+      / > < \
+     / /   \ \
+       )   (
+      /  ^  \
+     (__/ \__)`:String.raw`       /\_/\
+  <<  ( -w- )  >>
+      \  v  /
+       \   /
+       (   )
+      /  ^  \
+     (__/ \__)`);
+    text(13,10+beat*3,'♪',3);text(45,15-beat*3,'♫',3);text(18,22,'((  ONE MORE LOOP  ))',2);
+  }else if(scene==='memeBird'){
+    sprite(20,9-bounce,beat?String.raw`       _/\_
+     .'    '.
+   --   o    \
+     |   o    |
+     |  (..\  \______
+      \  \_\   _____===
+       '.___..'
+          /  /
+        _/  /_`:String.raw`       _/\_
+     .'    '.
+   --   -    \
+     |   o    |
+     |  (/..\ \______
+      \  \__/  _____===
+       '.___..'
+         /  /
+       _/  /_`);
+    text(37,6,beat?'?':'...',3);text(21,24,'YES. VERY MUSICAL.',2);
+  }else if(scene==='memeMoon'){
+    sprite(10,3,String.raw`           .-'
+        .-' /
+      .'   /
+     /    |
+    /     |
+   |      |
+   |       \
+   |        '.
+    \         '-.       _
+     '.          '-----'
+       '-._________.-'`,2);
+    sprite(25,8-bounce,String.raw` /\_/\
+( o.w )--o--*
+ /   \
+(  U  )
+ U   U`);
+    for(let i=0;i<23;i++){const x=35+(i*7%24),y=5+(i*11+phase*3)%23;put(x,y,(i+beat)%4===0?'*':'+',i%3===0?3:2);}
+    text(15,28,'* MAKE A LITTLE NOISE *',2);
+  }else{
+    sprite(19,4,String.raw`       .----------.
+     .'  ////////  '.
+    /  ///      ///  \
+   |  /            \ |
+   | |   ___   ___  ||
+   | |__[   ]-[   ]_||
+   | |  '---' '---'  |
+   | |       |       |
+   | |      /_)      |
+   | |               |
+    \|     _____     |
+     \              /
+      '._        _.'
+       / '------' \
+    __/     /\     \__
+   /       /  \       \ `);
+    text(26,9,beat?' - ':' o ');text(32,9,beat?' - ':' o ');
+    text(24,15,energy>.2?'   ___   ':'   ---   ',3);
+    text(20,26,beat?'I AM FEELING THE BEAT.':'                         ',2);
+  }
+}

@@ -1,3 +1,4 @@
+import {drawMeme,memeCaptions} from './memes.js';
 import {drawAnimal} from './animals.js';
 const palettes={
   paper:['#e9e9e1','#346366','#768a87','#bcc8c0','#d9418b','#173d40','#c9dfb0','#365855'],
@@ -6,7 +7,7 @@ const palettes={
   midnight:['#161e32','#b3c7e5','#8394b5','#354460','#ee88b7','#0b1223','#91c7e3','#293c57'],
   ink:['#ededeb','#242624','#6c706c','#bbbebb','#616861','#171917','#e4e6df','#424742']
 };
-const captions={cat:'CAT / 猫与球',horse:'HORSE / 奔跑练习',sheep:'SHEEP / 一只又一只',spectrum:'SPECTRAL TERRAIN',fish:'GOLDFISH / 水中漫游',rain:'RAIN / 雨落街角',city:'CITY / 夜间放送'};
+const captions={...memeCaptions,cat:'CAT / 猫与球',horse:'HORSE / 奔跑练习',sheep:'SHEEP / 一只又一只',spectrum:'SPECTRAL TERRAIN',fish:'GOLDFISH / 水中漫游',rain:'RAIN / 雨落街角',city:'CITY / 夜间放送'};
 export function startVisuals(engine){
   const $=s=>document.querySelector(s),canvas=$('#visual'),ctx=canvas.getContext('2d');
   let prefs={palette:'paper',scene:'cat',mode:'ascii',sensitivity:1.4};
@@ -75,7 +76,8 @@ export function startVisuals(engine){
     for(let x=0;x<64;x++)levels[x]=levels[x]*.65+fft[Math.min(511,Math.floor(2**(x/63*8.7)))]/255*.35;
     const animal=['cat','horse','sheep'].includes(prefs.scene);
     chars.fill(' ');tones.fill(0);
-    if(animal){
+    if(memeCaptions[prefs.scene])drawMeme(prefs.scene,phase,Math.min(1,energy*prefs.sensitivity*12),text,put);
+    else if(animal){
       drawAnimal(animalCtx,prefs.scene,phase,Math.min(1,energy*prefs.sensitivity*12),colors);
       {const pixels=animalCtx.getImageData(0,0,576,432).data;for(let y=0;y<32;y++)for(let x=0;x<64;x++){let strongest=0,tone=1;for(let dy=0;dy<12;dy++)for(let dx=0;dx<9;dx++){const i=((y*12+20+dy)*576+x*9+dx)*4;if(pixels[i+3]>strongest){strongest=pixels[i+3];tone=Math.abs(pixels[i]-parseInt(colors[4].slice(1,3),16))<5?3:1;}}if(strongest>70)put(x,y,'+',tone);}}
     }else if(prefs.scene==='fish')fishScene();else if(prefs.scene==='rain')rainScene();else if(prefs.scene==='city')cityScene();else spectrum();
