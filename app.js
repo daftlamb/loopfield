@@ -1,11 +1,12 @@
 import {setupMobile} from './mobile.js';
 import {startVisuals} from './visuals.js';
-import {makeProject,makeEmptyProject,validateProject,noteName,clone,STEPS,toggleSolo,transformNotes,patternName,addPattern,songOrder} from './model.js';
+import {makeProject,makeEmptyProject,validateProject,noteName,clone,STEPS,toggleSolo,transformNotes,randomizeTrack,patternName,addPattern,songOrder} from './model.js';
 import {Engine,renderWav} from './audio.js';
 import {fxSpecs,fxValue} from './fx-model.js';
 const $=s=>document.querySelector(s),key='loopfield-project-v1';
 let project=makeProject(),track=0,selected=0,mode='note',history=[],toastTimer,saveTimer,transportBusy=false,stepPage=0;
 try{const saved=localStorage.getItem(key);if(saved)project=validateProject(JSON.parse(saved));}catch{$('#saveState').textContent='存储不可用 / 可导出项目';}
+const randomLabels={note:'随机音符',velocity:'随机力度',probability:'随机概率',ratchet:'随机连击',gate:'随机 Gate'};
 const current=()=>project.patterns[project.pattern][track];
 const engine=new Engine(()=>project,({step,hits,pattern,song,ended})=>{
   if(ended){stop();return;}
@@ -94,7 +95,7 @@ const fxControls=fxSpecs.map(spec=>{
 });
 function renderFx(){fxControls.forEach(({spec,row,toggle,controls})=>{const fx=editingFx()[spec.id];row.classList.toggle('enabled',fx.enabled);toggle.setAttribute('aria-pressed',String(fx.enabled));controls.forEach(({id,input,output})=>{input.value=fx[id];output.textContent=fxValue(id,fx[id]);});});$('#fxCount').textContent=Object.values(editingFx()).filter(f=>f.enabled).length+' / 5 ON';}
 function renderProject(){ $('#projectName').value=project.name;$('#bpm').value=project.bpm;$('#swing').value=project.swing;$('#mobileSwing').value=project.swing;$('#mobileSwingValue').textContent=project.swing+'%';$('#swingValue').textContent=project.swing+'%';$('#master').value=Math.round(project.master*100);renderEditor();renderFx();renderSong();}
-$('#modes').onclick=e=>{const m=e.target.dataset.mode;if(!m)return;mode=m;[...$('#modes').children].forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));renderGrid();};
+$('#modes').onclick=e=>{const m=e.target.dataset.mode;if(!m)return;mode=m;$('#random').textContent=randomLabels[mode]+' ↗';[...$('#modes').children].forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));renderGrid();};
 for(const k of ['velocity','probability','note','ratchet','gate']){const input=$('#'+k);input.addEventListener('pointerdown',checkpoint);input.addEventListener('keydown',e=>{if(e.key.startsWith('Arrow'))checkpoint();});input.oninput=()=>{const s=current().steps[selected];s[k]=Number(input.value)/(['note','ratchet','gate'].includes(k)?1:100);s.on=true;renderGrid();renderStep();save();};}
 $('#kind').onchange=()=>{checkpoint();current().kind=$('#kind').value;renderEditor();save();};
 for(const k of ['mute','solo'])$('#'+k).onclick=()=>{checkpoint();if(k==='solo')toggleSolo(project.patterns[project.pattern],track);else current().mute=!current().mute;renderEditor();save();};
@@ -105,7 +106,7 @@ $('#projectName').onchange=()=>{project.name=$('#projectName').value.trim()||'Un
 $('#bpm').onchange=()=>{project.bpm=Math.min(220,Math.max(40,Number($('#bpm').value)||96));$('#bpm').value=project.bpm;renderSong();save();};
 $('#swing').oninput=()=>{project.swing=Number($('#swing').value);$('#swingValue').textContent=project.swing+'%';save();};
 $('#master').oninput=()=>{project.master=Number($('#master').value)/100;engine.setMaster(project.master);save();};
-$('#random').onclick=()=>{checkpoint();const scale=[0,3,5,7,10],base=track===1?36:60;current().steps.forEach(s=>{s.on=Math.random()<0.36;s.note=Math.min(96,base+scale[Math.floor(Math.random()*5)]+(Math.random()>0.7?12:0));s.velocity=0.5+Math.random()*0.4;});renderEditor();save();toast('已生成新音符 · 可撤销');};
+$('#random').onclick=()=>{checkpoint();randomizeTrack(current(),mode,track===1?36:60);renderEditor();save();toast(randomLabels[mode]+' · 可撤销');};
 $('#clear').onclick=()=>{checkpoint();current().steps.forEach(s=>s.on=false);renderEditor();save();};
 $('#undo').onclick=async()=>{if(!history.length)return;await stop();project=history.pop();$('#undo').disabled=!history.length;renderProject();engine.setMaster(project.master);engine.setFx(project.fx);save();};
 function download(blob,name){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),10000);}

@@ -32,3 +32,6 @@ test('all reset creates a silent valid project with default FX and empty arrange
 
 import {gateDuration} from './model.js';
 test('Gate migration preserves old envelope and bounds per-step duration',()=>{const p=makeProject();for(const tracks of p.patterns)for(const t of tracks)for(const s of t.steps)delete s.gate;validateProject(p);const s=p.patterns[0][0].steps[0];assert.equal(s.gate,0);assert.equal(gateDuration(s,.25),null);s.gate=200;assert.equal(gateDuration(s,.25),.5);assert.equal(validateProject(clone(p)).patterns[0][0].steps[0].gate,200);s.gate=401;assert.throws(()=>validateProject(p));assert.equal(draggedValue('gate',395,4),400);assert.equal(draggedValue('gate',5,-4),0);});
+
+import {randomizeTrack} from './model.js';
+test('randomize respects mode, inactive steps and unrelated parameters',()=>{for(const mode of ['velocity','probability','ratchet','gate']){const p=makeProject(),t=p.patterns[0][0],before=clone(t);randomizeTrack(t,mode);validateProject(p);t.steps.forEach((s,i)=>{if(!before.steps[i].on)assert.deepEqual(s,before.steps[i]);else{const copy={...s,[mode]:before.steps[i][mode]};assert.deepEqual(copy,before.steps[i]);}});}const t=makeProject().patterns[0][0],before=clone(t);randomizeTrack(t,'note');t.steps.forEach((s,i)=>assert.deepEqual({...s,on:before.steps[i].on,note:before.steps[i].note},before.steps[i]));});

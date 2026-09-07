@@ -62,3 +62,16 @@ export function addPattern(p,copy=false){if(p.patterns.length>=16)return false;c
 export function makeEmptyProject(){const p=makeProject();p.name='Untitled sketch';for(const tracks of p.patterns)for(const t of tracks)for(const s of t.steps)s.on=false;return p;}
 
 export const gateDuration=(step,spacing)=>step.gate>0?spacing*step.gate/100:null;
+
+export function randomizeTrack(t,mode,base=60){
+  const scale=[0,3,5,7,10];
+  for(const s of t.steps){
+    if(mode==='note'){s.on=Math.random()<.36;s.note=Math.min(96,base+scale[Math.floor(Math.random()*5)]+(Math.random()>.7?12:0));}
+    else if(s.on){
+      if(mode==='velocity')s.velocity=(5+Math.floor(Math.random()*96))/100;
+      else if(mode==='probability')s.probability=Math.floor(Math.random()*101)/100;
+      else if(mode==='ratchet')s.ratchet=1+Math.floor(Math.random()*8);
+      else if(mode==='gate')s.gate=(1+Math.floor(Math.random()*80))*5;
+    }
+  }
+}
