@@ -1,3 +1,4 @@
+import {setupMobile} from './mobile.js';
 import {startVisuals} from './visuals.js';
 import {makeProject,validateProject,noteName,clone,STEPS,toggleSolo,transformNotes} from './model.js';
 import {Engine,renderWav} from './audio.js';
@@ -36,8 +37,8 @@ for(let i=24;i<=96;i++){const option=document.createElement('option');option.val
 const specs=[['volume','LEVEL','音轨音量',0,1,0.01,v=>Math.round(v*100)],['attack','ATTACK','起音 / 秒',0.002,1,0.002,v=>v.toFixed(3)],['decay','DECAY','衰减 / 秒',0.03,2,0.01,v=>v.toFixed(2)],['pan','PAN','左右声像',-1,1,0.01,v=>v===0?'C':(v<0?'L':'R')+Math.round(Math.abs(v)*100)],['cutoff','FILTER','截止 / Hz',80,18000,10,v=>v>=1000?(v/1000).toFixed(1)+'k':v],['resonance','RES','共振',0.1,12,0.1,v=>v.toFixed(1)],['fm','FM DEPTH','调频深度',0,8,0.1,v=>v.toFixed(1)],['ratio','FM RATIO','调制频率比',0.5,8,0.5,v=>v.toFixed(1)]];
 const paramControls=specs.map(([k,title,hint,min,max,step,fmt])=>{const label=document.createElement('label');label.className='param';label.innerHTML=`<div><span>${title}</span><output></output></div><input aria-label="${hint}" type="range" min="${min}" max="${max}" step="${step}"><div class="hint">${hint}</div>`;const input=label.querySelector('input');input.addEventListener('pointerdown',checkpoint);input.addEventListener('keydown',e=>{if(e.key.startsWith('Arrow'))checkpoint();});input.oninput=()=>{current()[k]=Number(input.value);label.querySelector('output').textContent=fmt(current()[k]);save();};$('#parameters').append(label);return {label,input,k,fmt};});
 function renderGrid(){const t=current();gridButtons.forEach((b,i)=>{const s=t.steps[i];b.classList.toggle('off',!s.on);b.classList.toggle('selected',selected===i);b.setAttribute('aria-pressed',String(s.on));b.setAttribute('aria-label',`第 ${i+1} 步 ${s.on?noteName(s.note):'关闭'}`);b.querySelector('.value').textContent=s.on?(mode==='note'?noteName(s.note):mode==='ratchet'?'×'+s.ratchet:Math.round(s[mode]*100)+(mode==='probability'?'%':'')):'·';b.querySelector('.glyph').style.height=(mode==='note'?9:mode==='ratchet'?s.ratchet*3:Math.max(2,s[mode]*25))+'px';});}
-function renderStep(){const s=current().steps[selected];$('#ratchet').value=s.ratchet;$('#ratchetValue').textContent='×'+s.ratchet;$('#stepLabel').textContent=`STEP ${String(selected+1).padStart(2,'0')}`;$('#note').value=s.note;$('#velocity').value=Math.round(s.velocity*100);$('#probability').value=Math.round(s.probability*100);$('#velocityValue').textContent=Math.round(s.velocity*100);$('#probabilityValue').textContent=Math.round(s.probability*100)+'%';}
-function renderEditor(){const t=current();soloButtons.forEach((b,i)=>{const on=project.patterns[project.pattern][i].solo;b.classList.toggle('active',on);b.setAttribute('aria-pressed',String(on));});renderGrid();renderStep();trackButtons.forEach((b,i)=>{const tt=project.patterns[project.pattern][i];b.querySelector('span').textContent=tt.name;b.classList.toggle('active',i===track);b.classList.toggle('muted',tt.mute);b.classList.toggle('soloed',tt.solo);b.setAttribute('aria-label',`音轨 ${i+1} ${tt.name}`);b.setAttribute('aria-pressed',String(i===track));});[...$('#patterns').children].forEach((b,i)=>b.classList.toggle('active',i===project.pattern));$('#soundName').textContent=`0${track+1} · ${t.name}`;$('#kind').value=t.kind;for(const k of ['mute','solo']){$('#'+k).classList.toggle('active',t[k]);$('#'+k).setAttribute('aria-pressed',String(t[k]));}
+function renderStep(){const s=current().steps[selected];$('#mobileStep').textContent='STEP '+String(selected+1).padStart(2,'0');$('#ratchet').value=s.ratchet;$('#ratchetValue').textContent='×'+s.ratchet;$('#stepLabel').textContent=`STEP ${String(selected+1).padStart(2,'0')}`;$('#note').value=s.note;$('#velocity').value=Math.round(s.velocity*100);$('#probability').value=Math.round(s.probability*100);$('#velocityValue').textContent=Math.round(s.velocity*100);$('#probabilityValue').textContent=Math.round(s.probability*100)+'%';}
+function renderEditor(){const t=current();$('#mobileTrack').value=track;soloButtons.forEach((b,i)=>{const on=project.patterns[project.pattern][i].solo;b.classList.toggle('active',on);b.setAttribute('aria-pressed',String(on));});renderGrid();renderStep();trackButtons.forEach((b,i)=>{const tt=project.patterns[project.pattern][i];b.querySelector('span').textContent=tt.name;b.classList.toggle('active',i===track);b.classList.toggle('muted',tt.mute);b.classList.toggle('soloed',tt.solo);b.setAttribute('aria-label',`音轨 ${i+1} ${tt.name}`);b.setAttribute('aria-pressed',String(i===track));});[...$('#patterns').children].forEach((b,i)=>b.classList.toggle('active',i===project.pattern));$('#soundName').textContent=`0${track+1} · ${t.name}`;$('#kind').value=t.kind;for(const k of ['mute','solo']){$('#'+k).classList.toggle('active',t[k]);$('#'+k).setAttribute('aria-pressed',String(t[k]));}
   const drum=['kick','snare','hat','noise'].includes(t.kind);
   paramControls.forEach(({label,input,k,fmt})=>{input.value=t[k];label.querySelector('output').textContent=fmt(t[k]);input.disabled=(drum&&['attack','fm','ratio'].includes(k))||(['snare','hat'].includes(t.kind)&&k==='cutoff');label.classList.toggle('disabled',input.disabled);});
 }
@@ -57,7 +58,7 @@ const fxControls=fxSpecs.map(spec=>{
   });$('#fxControls').append(row);return {spec,row,toggle,controls};
 });
 function renderFx(){fxControls.forEach(({spec,row,toggle,controls})=>{const fx=editingFx()[spec.id];row.classList.toggle('enabled',fx.enabled);toggle.setAttribute('aria-pressed',String(fx.enabled));controls.forEach(({id,input,output})=>{input.value=fx[id];output.textContent=fxValue(id,fx[id]);});});$('#fxCount').textContent=Object.values(editingFx()).filter(f=>f.enabled).length+' / 5 ON';}
-function renderProject(){ $('#projectName').value=project.name;$('#bpm').value=project.bpm;$('#swing').value=project.swing;$('#swingValue').textContent=project.swing+'%';$('#master').value=Math.round(project.master*100);renderEditor();renderFx();}
+function renderProject(){ $('#projectName').value=project.name;$('#bpm').value=project.bpm;$('#swing').value=project.swing;$('#mobileSwing').value=project.swing;$('#mobileSwingValue').textContent=project.swing+'%';$('#swingValue').textContent=project.swing+'%';$('#master').value=Math.round(project.master*100);renderEditor();renderFx();}
 $('#modes').onclick=e=>{const m=e.target.dataset.mode;if(!m)return;mode=m;[...$('#modes').children].forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));renderGrid();};
 for(const k of ['velocity','probability','note','ratchet']){const input=$('#'+k);input.addEventListener('pointerdown',checkpoint);input.addEventListener('keydown',e=>{if(e.key.startsWith('Arrow'))checkpoint();});input.oninput=()=>{const s=current().steps[selected];s[k]=Number(input.value)/(['note','ratchet'].includes(k)?1:100);s.on=true;renderGrid();renderStep();save();};}
 $('#kind').onchange=()=>{checkpoint();current().kind=$('#kind').value;renderEditor();save();};
@@ -84,3 +85,14 @@ function convertNotes(options){checkpoint();const tracks=$('#pitchScope').value=
 $('#octDown').onclick=()=>convertNotes({octave:-1});
 $('#octUp').onclick=()=>convertNotes({octave:1});
 $('#applyScale').onclick=()=>convertNotes({root:Number($('#rootNote').value),scale:$('#scaleMode').value});
+
+setupMobile({
+  buttons:gridButtons,
+  selectTrack:i=>{track=i;renderEditor();},
+  selectStep:i=>{selected=i;renderGrid();renderStep();},
+  read:i=>({mode,value:current().steps[i][mode]}),
+  checkpoint,
+  change:(i,key,value)=>{selected=i;current().steps[i][key]=value;current().steps[i].on=true;renderGrid();renderStep();save();}
+});
+
+$('#mobileSwing').oninput=()=>{project.swing=Number($('#mobileSwing').value);$('#swing').value=project.swing;$('#swingValue').textContent=project.swing+'%';$('#mobileSwingValue').textContent=project.swing+'%';save();};
