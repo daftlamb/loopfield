@@ -1,0 +1,8 @@
+<!doctype html><html><meta charset="utf-8"><title>Track FX checks</title><button id="run">Run routing checks</button><pre id="out">Ready</pre><script type="module">
+import {createBus,playNote,renderWav} from './audio.js';import {makeProject} from './model.js';
+document.querySelector('#run').onclick=async()=>{const out=document.querySelector('#out');out.textContent='Running';try{
+async function render(index,enabled){const p=makeProject();p.trackFx[0].delay.enabled=enabled;p.trackFx[0].delay.mix=.8;const c=new OfflineAudioContext(2,88200,44100),bus=createBus(c,p.master,p.fx,p.trackFx);playNote(c,bus.tracks[index],p.patterns[0][0],{note:69,velocity:.8},.02);return (await c.startRendering()).getChannelData(0);}
+const a=await render(0,false),b=await render(0,true),c=await render(1,true);let diff=0;for(let i=0;i<a.length;i++){diff+=(a[i]-b[i])**2;if(a[i]!==c[i])throw Error('FX leaked to other track');}if(diff<.00001)throw Error('Track FX inactive');
+const p=makeProject(),dry=await renderWav(p);p.trackFx[0].delay.enabled=true;const wet=await renderWav(p);if(wet.size<=dry.size)throw Error('Missing per-track export tail');out.textContent='PASS per-track effect changes sound\nPASS other track stays dry\nPASS per-track WAV tail\nALL PASSED';
+}catch(e){out.textContent='FAIL '+e.stack;}};
+</script></html>

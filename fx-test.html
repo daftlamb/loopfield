@@ -1,0 +1,10 @@
+<!doctype html><html><head><meta charset="utf-8"><title>FX verification</title></head><body><button id="run">Run FX checks</button><pre id="result">Ready</pre><script type="module">
+import {createFx} from './fx.js';import {defaultFx,fxTail} from './fx-model.js';import {makeProject} from './model.js';import {renderWav} from './audio.js';
+document.querySelector('#run').onclick=async()=>{const out=document.querySelector('#result');out.textContent='Running';try{
+async function render(fx){const ctx=new OfflineAudioContext(2,44100*2,44100),chain=createFx(ctx,fx),osc=ctx.createOscillator(),env=ctx.createGain();osc.type='sine';osc.frequency.value=330;env.gain.setValueAtTime(0.3,0);env.gain.setValueAtTime(0,0.25);osc.connect(env);env.connect(chain.input);chain.output.connect(ctx.destination);osc.start(0);osc.stop(0.3);return (await ctx.startRendering()).getChannelData(0);}
+const dry=await render(defaultFx()),lines=[];
+for(const id of ['delay','reverb','chorus','compressor','crusher']){const fx=defaultFx();fx[id].enabled=true;const wet=await render(fx);let diff=0,tail=0;for(let i=0;i<wet.length;i++){if(!Number.isFinite(wet[i]))throw Error(id+' nonfinite');diff+=(wet[i]-dry[i])**2;if(i>22050)tail+=wet[i]**2;}if(diff<0.001)throw Error(id+' had no effect');if(['delay','reverb'].includes(id)&&tail<0.00001)throw Error(id+' missing tail');lines.push('PASS '+id+' signal difference='+diff.toFixed(4)+' tail='+tail.toFixed(5));}
+const bypass=defaultFx();bypass.crusher.bits=2;bypass.delay.feedback=0.7;const off=await render(bypass);if(off.some((v,i)=>v!==dry[i]))throw Error('bypass altered dry');lines.push('PASS disabled FX transparent');
+const p=makeProject();p.fx.delay.enabled=true;p.fx.reverb.enabled=true;const wav=await renderWav(p);const expected=44+Math.ceil((8*60/p.bpm+fxTail(p.fx))*44100)*4;if(wav.size!==expected)throw Error('WAV tail length');lines.push('PASS FX WAV tail '+wav.size+' bytes');out.textContent=lines.join('\n')+'\nALL PASSED';
+}catch(e){out.textContent='FAIL '+e.stack;}};
+</script></body></html>

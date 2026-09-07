@@ -1,0 +1,10 @@
+<!doctype html><html><head><meta charset="utf-8"><title>LOOPFIELD Audio checks</title></head><body><button id="run">Run audio checks</button><pre id="results">Ready</pre><script type="module">
+import {makeProject} from './model.js';import {createBus,playNote,audible,renderWav,Engine} from './audio.js';
+document.querySelector('#run').onclick=async()=>{const out=document.querySelector('#results');out.textContent='Running…';try{
+const p=makeProject(),lines=[];
+for(const t of p.patterns[0]){const c=new OfflineAudioContext(2,44100,44100),bus=createBus(c);playNote(c,bus,t,{note:60,velocity:0.8},0.02);const b=await c.startRendering(),d=b.getChannelData(0);let sum=0,peak=0;for(const v of d){if(!Number.isFinite(v))throw Error('Non finite sample');sum+=v*v;peak=Math.max(peak,Math.abs(v));}const rms=Math.sqrt(sum/d.length);if(rms<0.00001||peak>1)throw Error(t.kind+' invalid output '+rms);lines.push('PASS '+t.kind+' rms='+rms.toFixed(5)+' peak='+peak.toFixed(4));}
+const ts=p.patterns[0];ts[0].solo=true;if(audible(ts,ts[1])||!audible(ts,ts[0]))throw Error('solo routing');ts[0].mute=true;if(audible(ts,ts[0]))throw Error('mute routing');lines.push('PASS mute / solo');
+const wav=await renderWav(makeProject()),data=new DataView(await wav.arrayBuffer());if(data.getUint32(0)!==0x52494646||data.getUint16(22,true)!==2||data.getUint32(24,true)!==44100)throw Error('WAV header');lines.push('PASS stereo WAV '+wav.size+' bytes');
+const silent=makeProject();silent.patterns[0].forEach(t=>t.mute=true);const silence=new DataView(await (await renderWav(silent)).arrayBuffer());for(let i=44;i<silence.byteLength;i+=2)if(silence.getInt16(i,true)!==0)throw Error('muted output not silent');lines.push('PASS all-muted WAV is silent');
+out.textContent=lines.join('\n')+'\nALL PASSED';}catch(e){out.textContent='FAIL '+e.stack;}};
+</script></body></html>
