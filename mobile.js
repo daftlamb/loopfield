@@ -1,5 +1,6 @@
 export function draggedValue(mode,start,steps){
   if(mode==='note')return Math.max(24,Math.min(96,start+steps));
+  if(mode==='gate')return Math.max(0,Math.min(400,start+steps*5));
   if(mode==='ratchet')return Math.max(1,Math.min(8,start+steps));
   return Math.max(mode==='velocity'?0.05:0,Math.min(1,Math.round((start+steps*.05)*100)/100));
 }

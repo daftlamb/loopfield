@@ -16,8 +16,8 @@ export function makeProject(){
   const kinds=['fm','triangle','sine','square','kick','snare','hat','noise'];
   const names=['GLASS','LOW TIDE','SOFT KEYS','PULSE','KICK','SNARE','HI-HAT','DUST'];
   const tracks=kinds.map((kind,i)=>({name:names[i],kind,volume:i<4?0.48:0.65,attack:0.006,decay:i===2?0.6:0.2,cutoff:i===1?850:6500,resonance:0.7,fm:i===0?1.4:0,ratio:2,pan:i===0?-0.2:i===2?0.25:0,mute:false,solo:false,
-    steps:Array.from({length:STEPS},()=>({on:false,note:i===1?36:60,velocity:0.75,probability:1,ratchet:1}))}));
-  const set=(t,entries)=>entries.forEach(([step,note])=>{tracks[t].steps[step]={on:true,note,velocity:0.6+(step%3)*0.1,probability:1,ratchet:1};});
+    steps:Array.from({length:STEPS},()=>({on:false,note:i===1?36:60,velocity:0.75,probability:1,ratchet:1,gate:0}))}));
+  const set=(t,entries)=>entries.forEach(([step,note])=>{tracks[t].steps[step]={on:true,note,velocity:0.6+(step%3)*0.1,probability:1,ratchet:1,gate:0};});
   set(0,[[0,69],[3,76],[6,72],[10,67],[14,71],[16,69],[19,76],[22,79],[26,76],[30,71]]);
   set(1,[[0,33],[6,33],[10,40],[16,36],[22,36],[28,43]]);
   set(2,[[2,60],[8,64],[18,67],[24,64]]);
@@ -44,7 +44,7 @@ export function validateProject(p){
   if(p.trackFx===undefined)p.trackFx=Array.from({length:8},defaultFx);
   if(!Array.isArray(p.trackFx)||p.trackFx.length!==8)throw Error('分轨 FX 格式不正确');
   p.trackFx.forEach(validateFx);
-  for(const tracks of p.patterns)for(const t of tracks)for(const s of t.steps){if(s.ratchet===undefined)s.ratchet=1;if(!Number.isInteger(s.ratchet)||s.ratchet<1||s.ratchet>8)throw Error('连击次数必须为 1–8');}
+  for(const tracks of p.patterns)for(const t of tracks)for(const s of t.steps){if(s.gate===undefined)s.gate=0;if(!Number.isInteger(s.gate)||s.gate<0||s.gate>400)throw Error('Gate 必须为 0–400%');if(s.ratchet===undefined)s.ratchet=1;if(!Number.isInteger(s.ratchet)||s.ratchet<1||s.ratchet>8)throw Error('连击次数必须为 1–8');}
   if(p.playMode===undefined)p.playMode='pattern';
   if(p.song===undefined)p.song=[{pattern:p.pattern,repeats:1}];
   if(p.songLoop===undefined)p.songLoop=true;
@@ -60,3 +60,5 @@ export function nextSongPosition(p,position){const order=songOrder(p);return pos
 export function addPattern(p,copy=false){if(p.patterns.length>=16)return false;const tracks=clone(p.patterns[p.pattern]);if(!copy)for(const t of tracks)for(const s of t.steps)s.on=false;p.patterns.push(tracks);p.pattern=p.patterns.length-1;return true;}
 
 export function makeEmptyProject(){const p=makeProject();p.name='Untitled sketch';for(const tracks of p.patterns)for(const t of tracks)for(const s of t.steps)s.on=false;return p;}
+
+export const gateDuration=(step,spacing)=>step.gate>0?spacing*step.gate/100:null;

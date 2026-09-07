@@ -29,3 +29,6 @@ test('song scheduling follows repeats then terminates without scheduling another
 
 import {makeEmptyProject} from './model.js';
 test('all reset creates a silent valid project with default FX and empty arrangement',()=>{const p=makeEmptyProject();validateProject(p);assert.equal(p.patterns.length,4);assert.ok(p.patterns.every(ts=>ts.every(t=>t.steps.every(s=>!s.on))));assert.equal(p.playMode,'pattern');assert.deepEqual(p.song,[{pattern:0,repeats:1}]);assert.ok([p.fx,...p.trackFx].every(fx=>Object.values(fx).every(f=>!f.enabled)));});
+
+import {gateDuration} from './model.js';
+test('Gate migration preserves old envelope and bounds per-step duration',()=>{const p=makeProject();for(const tracks of p.patterns)for(const t of tracks)for(const s of t.steps)delete s.gate;validateProject(p);const s=p.patterns[0][0].steps[0];assert.equal(s.gate,0);assert.equal(gateDuration(s,.25),null);s.gate=200;assert.equal(gateDuration(s,.25),.5);assert.equal(validateProject(clone(p)).patterns[0][0].steps[0].gate,200);s.gate=401;assert.throws(()=>validateProject(p));assert.equal(draggedValue('gate',395,4),400);assert.equal(draggedValue('gate',5,-4),0);});

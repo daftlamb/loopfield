@@ -1,4 +1,4 @@
-import {STEPS,stepDuration,ratchetOffsets,songOrder,nextSongPosition} from './model.js';
+import {STEPS,stepDuration,ratchetOffsets,songOrder,nextSongPosition,gateDuration} from './model.js';
 import {createFx} from './fx.js';
 import {defaultFx,fxTail} from './fx-model.js';
 const noiseBuffers=new WeakMap();
@@ -11,10 +11,10 @@ export function createBus(ctx,master=0.58,settings=defaultFx(),trackSettings=[])
   const tracks=trackSettings.map(settings=>{const chain=createFx(ctx,settings);chain.output.connect(input);return {input:chain.input,fx:chain};});
   return {input,gain,analyser,fx,tracks};
 }
-export function playNote(ctx,bus,t,s,time){
+export function playNote(ctx,bus,t,s,time,gate=null){
   const f=440*2**((s.note-69)/12),env=ctx.createGain(),filter=ctx.createBiquadFilter(),pan=ctx.createStereoPanner();
-  const drum=['kick','snare','hat','noise'].includes(t.kind),attack=drum?0.002:t.attack,end=time+attack+t.decay;
-  env.gain.setValueAtTime(0,time);env.gain.linearRampToValueAtTime(Math.max(0.0001,t.volume*s.velocity*0.32),time+attack);env.gain.exponentialRampToValueAtTime(0.0001,end);env.gain.linearRampToValueAtTime(0,end+0.01);
+  const drum=['kick','snare','hat','noise'].includes(t.kind),attack=gate===null?(drum?0.002:t.attack):Math.min(drum?0.002:t.attack,gate*.25),end=time+(gate===null?attack+t.decay:gate+Math.min(t.decay,.08));
+  env.gain.setValueAtTime(0,time);env.gain.linearRampToValueAtTime(Math.max(0.0001,t.volume*s.velocity*0.32),time+attack);if(gate!==null)env.gain.setValueAtTime(Math.max(0.0001,t.volume*s.velocity*0.32),time+gate);env.gain.exponentialRampToValueAtTime(0.0001,end);env.gain.linearRampToValueAtTime(0,end+0.01);
   filter.type=t.kind==='hat'?'highpass':t.kind==='snare'?'bandpass':'lowpass';filter.frequency.value=t.kind==='hat'?6500:t.kind==='snare'?2200:t.cutoff;filter.Q.value=t.resonance;pan.pan.value=t.pan;
   env.connect(filter);filter.connect(pan);pan.connect(bus.input);
   const sources=[],nodes=[env,filter,pan];
@@ -34,7 +34,7 @@ export function playNote(ctx,bus,t,s,time){
 export function playStep(ctx,bus,t,s,time,duration){
   const count=s.ratchet??1,spacing=duration/count;
   const voice=count===1?t:{...t,attack:Math.min(t.attack,spacing*.15),decay:Math.min(t.decay,spacing*.65)};
-  for(const offset of ratchetOffsets(duration,count))playNote(ctx,bus,voice,s,time+offset);
+  for(const offset of ratchetOffsets(duration,count))playNote(ctx,bus,voice,s,time+offset,gateDuration(s,spacing));
 }
 export function audible(tracks,t){return !t.mute&&(!tracks.some(x=>x.solo)||t.solo);}
 export class Engine{
@@ -61,7 +61,7 @@ export class Engine{
   queuePattern(index){this.pendingPattern=index;}
   tick(){if(!this.ctx)return;let last;while(this.queue.length&&this.queue[0].time<=this.ctx.currentTime)last=this.queue.shift();if(last)this.onStep(last);}
   async stop(){this.playing=false;this.worker?.terminate();this.queue=[];if(this.ctx){await this.ctx.close();this.ctx=null;this.bus=null;}}
-  async preview(t,s){await this.init();const p=this.getProject(),i=p.patterns[p.pattern].indexOf(t);playNote(this.ctx,this.bus.tracks[i]??this.bus,t,s,this.ctx.currentTime+0.01);}
+  async preview(t,s){await this.init();const p=this.getProject(),i=p.patterns[p.pattern].indexOf(t);playNote(this.ctx,this.bus.tracks[i]??this.bus,t,s,this.ctx.currentTime+0.01,gateDuration(s,60/p.bpm/4));}
   setMaster(v){if(this.ctx)this.bus.gain.gain.setTargetAtTime(v*0.65,this.ctx.currentTime,0.02);}
   setFx(fx){this.bus?.fx.update(fx);this.bus?.tracks.forEach((bus,i)=>bus.fx.update(this.getProject().trackFx[i]));}
 }

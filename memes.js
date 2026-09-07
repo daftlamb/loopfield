@@ -22,7 +22,7 @@ export function drawMeme(scene,phase,energy,text,put){
       |    /     |  /   /
      / /  /      | | | |
     (_(__/       (_(_(_/`);
-    text(23,25,'NO THOUGHTS. JUST BASS.',2);
+
   }else if(scene==='memeDance'){
     sprite(23+beat,8-bounce,beat?String.raw`       /\_/\
   >>  ( o.o )  <<
@@ -37,7 +37,7 @@ export function drawMeme(scene,phase,energy,text,put){
        (   )
       /  ^  \
      (__/ \__)`);
-    text(13,10+beat*3,'♪',3);text(45,15-beat*3,'♫',3);text(18,22,'((  ONE MORE LOOP  ))',2);
+
   }else if(scene==='memeBird'){
     sprite(20,9-bounce,beat?String.raw`       _/\_
      .'    '.
@@ -56,7 +56,7 @@ export function drawMeme(scene,phase,energy,text,put){
        '.___..'
          /  /
        _/  /_`);
-    text(37,6,beat?'?':'...',3);text(21,24,'YES. VERY MUSICAL.',2);
+    text(37,6,beat?'?':'...',3);
   }else if(scene==='memeMoon'){
     sprite(10,3,String.raw`           .-'
         .-' /
@@ -74,8 +74,8 @@ export function drawMeme(scene,phase,energy,text,put){
  /   \
 (  U  )
  U   U`);
-    for(let i=0;i<23;i++){const x=35+(i*7%24),y=5+(i*11+phase*3)%23;put(x,y,(i+beat)%4===0?'*':'+',i%3===0?3:2);}
-    text(15,28,'* MAKE A LITTLE NOISE *',2);
+    for(let i=0;i<23;i++){const x=35+(i*7%14),y=3+(i*11+phase*3)%14;put(x,y,(i+beat)%4===0?'*':'+',i%3===0?3:2);}
+
   }else{
     sprite(19,4,String.raw`       .----------.
      .'  ////////  '.
@@ -95,6 +95,6 @@ export function drawMeme(scene,phase,energy,text,put){
    /       /  \       \ `);
     text(26,9,beat?' - ':' o ');text(32,9,beat?' - ':' o ');
     text(24,15,energy>.2?'   ___   ':'   ---   ',3);
-    text(20,26,beat?'I AM FEELING THE BEAT.':'                         ',2);
+
   }
 }
