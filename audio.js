@@ -39,7 +39,14 @@ export function playStep(ctx,bus,t,s,time,duration){
 export function audible(tracks,t){return !t.mute&&(!tracks.some(x=>x.solo)||t.solo);}
 export class Engine{
   constructor(getProject,onStep){this.getProject=getProject;this.onStep=onStep;this.playing=false;this.queue=[];this.nextStep=0;}
-  async init(){if(!this.ctx){this.ctx=new AudioContext({latencyHint:'interactive'});this.bus=createBus(this.ctx,this.getProject().master,this.getProject().fx,this.getProject().trackFx);}await this.ctx.resume();}
+  async init(){
+    if(navigator.audioSession)navigator.audioSession.type='playback';
+    if(!this.ctx)this.ctx=new AudioContext({latencyHint:'interactive'});
+    // Resume in the tap handler before constructing the effects graph on iPhone.
+    await this.ctx.resume();
+    if(this.ctx.state!=='running')throw new Error('Audio context is not running');
+    if(!this.bus)this.bus=createBus(this.ctx,this.getProject().master,this.getProject().fx,this.getProject().trackFx);
+  }
   async start(){await this.init();if(this.playing)return;this.playing=true;this.nextTime=this.ctx.currentTime+0.07;this.nextStep=0;this.queue=[];
     this.worker=new Worker(new URL('./clock.js',import.meta.url));this.worker.onmessage=()=>this.schedule();this.schedule();}
   schedule(){if(!this.playing)return;const p=this.getProject();if(this.nextTime<this.ctx.currentTime-0.1)this.nextTime=this.ctx.currentTime+0.03;
