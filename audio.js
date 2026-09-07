@@ -1,4 +1,4 @@
-import {STEPS,stepDuration,ratchetOffsets} from './model.js';
+import {STEPS,stepDuration,ratchetOffsets,songOrder,nextSongPosition} from './model.js';
 import {createFx} from './fx.js';
 import {defaultFx,fxTail} from './fx-model.js';
 const noiseBuffers=new WeakMap();
@@ -47,23 +47,28 @@ export class Engine{
     if(this.ctx.state!=='running')throw new Error('Audio context is not running');
     if(!this.bus)this.bus=createBus(this.ctx,this.getProject().master,this.getProject().fx,this.getProject().trackFx);
   }
-  async start(){await this.init();if(this.playing)return;this.playing=true;this.nextTime=this.ctx.currentTime+0.07;this.nextStep=0;this.queue=[];
+  async start(){await this.init();if(this.playing)return;this.playing=true;this.nextTime=this.ctx.currentTime+0.07;this.nextStep=0;this.queue=[];this.songPosition=0;this.activePattern=this.getProject().pattern;this.pendingPattern=null;this.ended=false;
     this.worker=new Worker(new URL('./clock.js',import.meta.url));this.worker.onmessage=()=>this.schedule();this.schedule();}
-  schedule(){if(!this.playing)return;const p=this.getProject();if(this.nextTime<this.ctx.currentTime-0.1)this.nextTime=this.ctx.currentTime+0.03;
-    while(this.nextTime<this.ctx.currentTime+0.12){const tracks=p.patterns[p.pattern],step=this.nextStep;let hits=[];
+  schedule(){if(!this.playing||this.ended)return;const p=this.getProject();if(this.nextTime<this.ctx.currentTime-0.1)this.nextTime=this.ctx.currentTime+0.03;
+    while(this.nextTime<this.ctx.currentTime+0.12){
+      if(this.nextStep===0&&this.pendingPattern!==null){this.activePattern=this.pendingPattern;this.pendingPattern=null;}
+      const song=p.playMode==='song'?songOrder(p)[this.songPosition]:null,pattern=song?song.pattern:this.activePattern,tracks=p.patterns[pattern],step=this.nextStep;let hits=[];
       tracks.forEach((t,i)=>{const s=t.steps[step];if(audible(tracks,t)&&s.on&&Math.random()<s.probability){playStep(this.ctx,this.bus.tracks[i]??this.bus,t,s,this.nextTime,stepDuration(p.bpm,p.swing,step));hits.push(i);}});
-      this.queue.push({time:this.nextTime,step,hits});this.nextTime+=stepDuration(p.bpm,p.swing,step);this.nextStep=(step+1)%STEPS;
+      this.queue.push({time:this.nextTime,step,hits,pattern,song});this.nextTime+=stepDuration(p.bpm,p.swing,step);this.nextStep=(step+1)%STEPS;
+      if(this.nextStep===0&&p.playMode==='song'){const next=nextSongPosition(p,this.songPosition);if(next===null){this.ended=true;this.queue.push({time:this.nextTime+fxTail(p.fx)+Math.max(0,...p.trackFx.map(f=>fxTail(f)-3)),ended:true});break;}this.songPosition=next;}
     }
   }
+  queuePattern(index){this.pendingPattern=index;}
   tick(){if(!this.ctx)return;let last;while(this.queue.length&&this.queue[0].time<=this.ctx.currentTime)last=this.queue.shift();if(last)this.onStep(last);}
   async stop(){this.playing=false;this.worker?.terminate();this.queue=[];if(this.ctx){await this.ctx.close();this.ctx=null;this.bus=null;}}
   async preview(t,s){await this.init();const p=this.getProject(),i=p.patterns[p.pattern].indexOf(t);playNote(this.ctx,this.bus.tracks[i]??this.bus,t,s,this.ctx.currentTime+0.01);}
   setMaster(v){if(this.ctx)this.bus.gain.gain.setTargetAtTime(v*0.65,this.ctx.currentTime,0.02);}
   setFx(fx){this.bus?.fx.update(fx);this.bus?.tracks.forEach((bus,i)=>bus.fx.update(this.getProject().trackFx[i]));}
 }
-export async function renderWav(p){
-  const settings=p.fx??defaultFx(),trackSettings=p.trackFx??[],tail=fxTail(settings)+Math.max(0,...trackSettings.map(f=>fxTail(f)-3)),duration=STEPS*60/p.bpm/4,ctx=new OfflineAudioContext(2,Math.ceil((duration+tail)*44100),44100),bus=createBus(ctx,p.master,settings,trackSettings),tracks=p.patterns[p.pattern];let time=0.02;
-  for(let i=0;i<STEPS;i++){tracks.forEach((t,index)=>{const s=t.steps[i];if(audible(tracks,t)&&s.on&&Math.random()<s.probability)playStep(ctx,bus.tracks[index]??bus,t,s,time,stepDuration(p.bpm,p.swing,i));});time+=stepDuration(p.bpm,p.swing,i);}
+export async function renderWav(p,mode='pattern'){
+  const order=mode==='song'?songOrder(p):[{pattern:p.pattern}];
+  const settings=p.fx??defaultFx(),trackSettings=p.trackFx??[],tail=fxTail(settings)+Math.max(0,...trackSettings.map(f=>fxTail(f)-3)),duration=order.length*STEPS*60/p.bpm/4,ctx=new OfflineAudioContext(2,Math.ceil((duration+tail)*44100),44100),bus=createBus(ctx,p.master,settings,trackSettings);let time=0.02;
+  for(const {pattern} of order)for(let i=0;i<STEPS;i++){const tracks=p.patterns[pattern];tracks.forEach((t,index)=>{const s=t.steps[i];if(audible(tracks,t)&&s.on&&Math.random()<s.probability)playStep(ctx,bus.tracks[index]??bus,t,s,time,stepDuration(p.bpm,p.swing,i));});time+=stepDuration(p.bpm,p.swing,i);}
   const buffer=await ctx.startRendering(),bytes=new ArrayBuffer(44+buffer.length*4),view=new DataView(bytes),str=(o,s)=>[...s].forEach((c,i)=>view.setUint8(o+i,c.charCodeAt(0)));
   str(0,'RIFF');view.setUint32(4,bytes.byteLength-8,true);str(8,'WAVE');str(12,'fmt ');view.setUint32(16,16,true);view.setUint16(20,1,true);view.setUint16(22,2,true);view.setUint32(24,44100,true);view.setUint32(28,176400,true);view.setUint16(32,4,true);view.setUint16(34,16,true);str(36,'data');view.setUint32(40,buffer.length*4,true);
   const channels=[buffer.getChannelData(0),buffer.getChannelData(1)];for(let i=0;i<buffer.length;i++)for(let c=0;c<2;c++){const x=Math.max(-1,Math.min(1,channels[c][i]));view.setInt16(44+(i*2+c)*2,x*(x<0?32768:32767),true);}

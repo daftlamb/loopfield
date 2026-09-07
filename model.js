@@ -26,11 +26,11 @@ export function makeProject(){
   set(5,[4,12,20,28].map(x=>[x,48]));
   set(6,Array.from({length:16},(_,i)=>[i*2,72]));tracks[6].volume=0.25;tracks[6].decay=0.055;
   set(7,[[15,65],[31,65]]);tracks[7].volume=0.09;tracks[7].decay=0.08;
-  return {version:1,name:'Riverside sketch',bpm:96,swing:12,master:0.58,fx:defaultFx(),trackFx:Array.from({length:8},defaultFx),patterns:[tracks,clone(tracks),clone(tracks),clone(tracks)],pattern:0};
+  return {version:1,name:'Riverside sketch',bpm:96,swing:12,master:0.58,fx:defaultFx(),trackFx:Array.from({length:8},defaultFx),patterns:[tracks,clone(tracks),clone(tracks),clone(tracks)],pattern:0,playMode:'pattern',song:[{pattern:0,repeats:1}],songLoop:true};
 }
 export function validateProject(p){
   const num=(v,a,b)=>typeof v==='number'&&Number.isFinite(v)&&v>=a&&v<=b;
-  if(!p||p.version!==1||typeof p.name!=='string'||p.name.length>80||!num(p.bpm,40,220)||!num(p.swing,0,60)||!num(p.master,0,1)||!Number.isInteger(p.pattern)||!num(p.pattern,0,3)||!Array.isArray(p.patterns)||p.patterns.length!==4)throw Error('项目格式不正确');
+  if(!p||p.version!==1||typeof p.name!=='string'||p.name.length>80||!num(p.bpm,40,220)||!num(p.swing,0,60)||!num(p.master,0,1)||!Number.isInteger(p.pattern)||!Array.isArray(p.patterns)||p.patterns.length<1||p.patterns.length>16||!num(p.pattern,0,p.patterns.length-1))throw Error('项目格式不正确');
   for(const tracks of p.patterns){
     if(!Array.isArray(tracks)||tracks.length!==8)throw Error('项目需要 8 条轨道');
     for(const t of tracks){
@@ -45,7 +45,16 @@ export function validateProject(p){
   if(!Array.isArray(p.trackFx)||p.trackFx.length!==8)throw Error('分轨 FX 格式不正确');
   p.trackFx.forEach(validateFx);
   for(const tracks of p.patterns)for(const t of tracks)for(const s of t.steps){if(s.ratchet===undefined)s.ratchet=1;if(!Number.isInteger(s.ratchet)||s.ratchet<1||s.ratchet>8)throw Error('连击次数必须为 1–8');}
+  if(p.playMode===undefined)p.playMode='pattern';
+  if(p.song===undefined)p.song=[{pattern:p.pattern,repeats:1}];
+  if(p.songLoop===undefined)p.songLoop=true;
+  if(!['pattern','song'].includes(p.playMode)||typeof p.songLoop!=='boolean'||!Array.isArray(p.song)||p.song.length<1||p.song.length>32||p.song.some(row=>!row||!Number.isInteger(row.pattern)||!num(row.pattern,0,p.patterns.length-1)||!Number.isInteger(row.repeats)||!num(row.repeats,1,8)))throw Error('Song 编排格式不正确');
   return p;
 }
 
 export const ratchetOffsets=(duration,count)=>Array.from({length:count},(_,i)=>duration*i/count);
+
+export const patternName=i=>String.fromCharCode(65+i);
+export function songOrder(p){return p.song.flatMap((row,index)=>Array.from({length:row.repeats},(_,repeat)=>({pattern:row.pattern,row:index,repeat})));}
+export function nextSongPosition(p,position){const order=songOrder(p);return position+1<order.length?position+1:p.songLoop?0:null;}
+export function addPattern(p,copy=false){if(p.patterns.length>=16)return false;const tracks=clone(p.patterns[p.pattern]);if(!copy)for(const t of tracks)for(const s of t.steps)s.on=false;p.patterns.push(tracks);p.pattern=p.patterns.length-1;return true;}
