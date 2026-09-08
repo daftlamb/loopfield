@@ -9,6 +9,8 @@ const palettes={
   ink:['#ededeb','#242624','#6c706c','#bbbebb','#616861','#171917','#e4e6df','#424742']
 };
 const captions={...memeCaptions,horse:'HORSE / 奔跑练习',spectrum:'SPECTRAL TERRAIN',fish:'GOLDFISH / 水中漫游',rain:'RAIN / 雨落街角',city:'CITY / 夜间放送'};
+// Fixed offsets from each animation's full-cycle bounds; never recenter individual frames.
+const sceneOffsets={memeCat:[16,60],memeMoon:[32,66],memeBird:[-12,6],memeFace:[0,48]};
 export function startVisuals(engine){
   const $=s=>document.querySelector(s),canvas=$('#visual'),ctx=canvas.getContext('2d');
   let prefs={palette:'paper',scene:'random',slideshowVersion:2,sensitivity:1.4};
@@ -80,6 +82,7 @@ export function startVisuals(engine){
     }else if(scene==='fish')fishScene();else if(scene==='city')cityScene();else spectrum();
     }
     ctx.fillStyle=colors[5];ctx.fillRect(0,0,576,432);ctx.save();
+    const offset=sceneOffsets[scene];if(offset)ctx.translate(...offset);
     ctx.font='16px "Loop Pixel",monospace';ctx.textAlign='center';
     for(let y=0;y<32;y++)for(let x=0;x<64;x++){const i=y*64+x;if(chars[i]===' ')continue;ctx.fillStyle=tones[i]===3?colors[4]:tones[i]===2?colors[7]:colors[6];ctx.fillText(chars[i],36+x*8,y*12+34);}
     ctx.restore();
