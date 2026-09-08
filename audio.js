@@ -1,3 +1,4 @@
+import {midiNotes} from './midi.js';
 import {automate,modValue,routeFor,arpEvents} from './modulation.js';
 import {STEPS,stepDuration,ratchetOffsets,songOrder,nextSongPosition,gateDuration} from './model.js';
 import {createFx} from './fx.js';
@@ -75,14 +76,15 @@ export class Engine{
   }
   async start(){await this.init();if(this.playing)return;this.playing=true;this.nextTime=this.ctx.currentTime+0.015;this.nextStep=0;this.queue=[];this.songPosition=0;this.bus.tracks.forEach(bus=>bus.origin=this.nextTime);this.activePattern=this.getProject().pattern;this.pendingPattern=null;this.ended=false;
     this.worker=new Worker(new URL('./clock.js',import.meta.url));this.worker.onmessage=()=>this.schedule();this.schedule();}
-  schedule(){if(!this.playing||this.ended)return;const p=this.getProject();if(this.nextTime<this.ctx.currentTime-0.1)this.nextTime=this.ctx.currentTime+0.03;
+  schedule(){if(this.ctx)this.midi?.flush(this.ctx);if(!this.playing||this.ended)return;const p=this.getProject();if(this.nextTime<this.ctx.currentTime-0.1)this.nextTime=this.ctx.currentTime+0.03;
     while(this.nextTime<this.ctx.currentTime+0.12){
       if(this.nextStep===0&&this.pendingPattern!==null){this.activePattern=this.pendingPattern;this.pendingPattern=null;}
       const song=p.playMode==='song'?songOrder(p)[this.songPosition]:null,pattern=song?song.pattern:this.activePattern,tracks=p.patterns[pattern],step=this.nextStep;let hits=[];
-      tracks.forEach((t,i)=>{const s=t.steps[step];if(audible(tracks,t)&&s.on&&Math.random()<s.probability){playStep(this.ctx,this.bus.tracks[i]??this.bus,t,s,this.nextTime,stepDuration(p.bpm,p.swing,step),p.bpm);hits.push(i);}const bus=this.bus?.tracks[i];if(bus)modulateStep(bus,t,p.trackFx[i],this.nextTime,stepDuration(p.bpm,p.swing,step),p.bpm);});
+      tracks.forEach((t,i)=>{const s=t.steps[step];if(audible(tracks,t)&&s.on&&Math.random()<s.probability){playStep(this.ctx,this.bus.tracks[i]??this.bus,t,s,this.nextTime,stepDuration(p.bpm,p.swing,step),p.bpm);this.midi?.schedule(i,midiNotes(t,s,this.nextTime,stepDuration(p.bpm,p.swing,step),p.bpm,this.bus.tracks[i].origin),this.nextTime);hits.push(i);}const bus=this.bus?.tracks[i];if(bus)modulateStep(bus,t,p.trackFx[i],this.nextTime,stepDuration(p.bpm,p.swing,step),p.bpm);});
       this.queue.push({time:this.nextTime,step,hits,pattern,song});this.nextTime+=stepDuration(p.bpm,p.swing,step);this.nextStep=(step+1)%STEPS;
       if(this.nextStep===0&&p.playMode==='song'){const next=nextSongPosition(p,this.songPosition);if(next===null){this.ended=true;this.queue.push({time:this.nextTime+projectTail(p),ended:true});break;}this.songPosition=next;}
     }
+    this.midi?.flush(this.ctx);
   }
   syncProject(){
     const p=this.getProject();
@@ -92,9 +94,17 @@ export class Engine{
     this.queue=this.queue.filter(event=>event.ended||(event.pattern<p.patterns.length&&(!event.song||event.song.row<p.song.length)));
   }
   queuePattern(index){this.pendingPattern=index;}
-  tick(){if(!this.ctx)return;let last;while(this.queue.length&&this.queue[0].time<=this.ctx.currentTime)last=this.queue.shift();if(last)this.onStep(last);}
-  async stop(){this.playing=false;this.worker?.terminate();this.queue=[];if(this.ctx){await this.ctx.close();this.ctx=null;this.bus=null;}}
+  tick(){if(!this.ctx)return;this.midi?.flush(this.ctx);let last;while(this.queue.length&&this.queue[0].time<=this.ctx.currentTime)last=this.queue.shift();if(last)this.onStep(last);}
+  async stop(){this.previewToken=(this.previewToken??0)+1;this.midi?.panic();this.previewVoice=null;this.playing=false;this.worker?.terminate();this.queue=[];if(this.ctx){await this.ctx.close();this.ctx=null;this.bus=null;}}
   async preview(t,s){await this.init();const p=this.getProject(),i=p.patterns[p.pattern].indexOf(t),bus=this.bus.tracks[i]??this.bus,start=this.ctx.currentTime+.01,duration=60/p.bpm/4;playStep(this.ctx,bus,t,s,start,duration,p.bpm);modulateStep(bus,t,p.trackFx[i],start,Math.max(duration*4,t.attack+t.decay),p.bpm);}
+  async previewNote(track,step){
+    const token=this.previewToken=(this.previewToken??0)+1,p=this.getProject(),i=p.patterns[p.pattern].indexOf(track);
+    const t=structuredClone(track),s={...step};await this.init();if(token!==this.previewToken)return;
+    const start=this.ctx.currentTime+.01,bus=this.bus.tracks[i],length=Math.min(.45,Math.max(.08,t.attack+t.decay));
+    this.previewVoice?.stop(start);
+    this.previewVoice=playNote(this.ctx,bus,t,s,start,length,{bpm:p.bpm,origin:bus.origin??start});
+    this.midi?.schedule(i,[{time:start,note:s.note,velocity:Math.max(1,Math.round(s.velocity*127)),duration:length,arp:false}],start);
+  }
   setMaster(v){if(this.ctx)this.bus.gain.gain.setTargetAtTime(v*0.65,this.ctx.currentTime,0.02);}
   setFx(fx){this.bus?.fx.update(fx);this.bus?.tracks.forEach((bus,i)=>bus.fx.update(this.getProject().trackFx[i]));}
 }

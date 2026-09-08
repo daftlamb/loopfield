@@ -1,3 +1,4 @@
+import {setupMidi} from './midi-ui.js';
 import {icon} from './icons.js';
 import {setupModUI} from './mod-ui.js';
 import {setupMobile} from './mobile.js';
@@ -22,6 +23,8 @@ const engine=new Engine(()=>project,({step,hits,pattern,song,ended})=>{
 });
 function toast(text){$('#toast').textContent=text;$('#toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('#toast').classList.remove('show'),2600);}
 function save(){clearTimeout(saveTimer);saveTimer=setTimeout(()=>{try{localStorage.setItem(key,JSON.stringify(project));$('#saveState').textContent='已保存到本机';}catch{$('#saveState').textContent='请导出项目保存';}},150);}
+let previewWarning=false;
+function previewEditedNote(){engine.previewNote(current(),current().steps[selected]).catch(()=>{if(!previewWarning){toast('请先点一次试听音色，开启音符预览');previewWarning=true;}});}
 function checkpoint(){history.push(clone(project));if(history.length>30)history.shift();$('#undo').disabled=false;}
 let stepClipboard=null,menuTarget=null;
 const stepMenu=$('#stepMenu');
@@ -41,7 +44,7 @@ document.addEventListener('keydown',e=>{
   e.preventDefault();const target=stepMenu.hidden?{pattern:project.pattern,track,step:selected}:menuTarget;
   if(key==='c')copyStep(target);else pasteStep(target);stepMenu.hidden=true;
 });
-const gridButtons=Array.from({length:STEPS},(_,i)=>{const b=document.createElement('button');b.className='step';b.innerHTML=`<small>${String(i+1).padStart(2,'0')}</small><span class="value"></span><i class="glyph"></i>`;b.onclick=()=>{checkpoint();selected=i;const s=current().steps[i];s.on=!s.on;renderGrid();renderStep();save();};b.oncontextmenu=e=>{e.preventDefault();selected=i;renderGrid();renderStep();b.focus({preventScroll:true});menuTarget={pattern:project.pattern,track,step:i};$('#pasteStep').disabled=!stepClipboard;stepMenu.hidden=false;const r=b.getBoundingClientRect(),x=e.clientX||r.left,y=e.clientY||r.bottom;stepMenu.style.left=Math.max(8,Math.min(x,innerWidth-stepMenu.offsetWidth-8))+'px';stepMenu.style.top=Math.max(8,Math.min(y,innerHeight-stepMenu.offsetHeight-8))+'px';$('#copyStep').focus({preventScroll:true});};$('#grid').append(b);return b;});
+const gridButtons=Array.from({length:STEPS},(_,i)=>{const b=document.createElement('button');b.className='step';b.innerHTML=`<small>${String(i+1).padStart(2,'0')}</small><span class="value"></span><i class="glyph"></i>`;b.onclick=()=>{checkpoint();selected=i;const s=current().steps[i];s.on=!s.on;renderGrid();renderStep();save();if(s.on&&mode==='note')previewEditedNote();};b.oncontextmenu=e=>{e.preventDefault();selected=i;renderGrid();renderStep();b.focus({preventScroll:true});menuTarget={pattern:project.pattern,track,step:i};$('#pasteStep').disabled=!stepClipboard;stepMenu.hidden=false;const r=b.getBoundingClientRect(),x=e.clientX||r.left,y=e.clientY||r.bottom;stepMenu.style.left=Math.max(8,Math.min(x,innerWidth-stepMenu.offsetWidth-8))+'px';stepMenu.style.top=Math.max(8,Math.min(y,innerHeight-stepMenu.offsetHeight-8))+'px';$('#copyStep').focus({preventScroll:true});};$('#grid').append(b);return b;});
 gridButtons.forEach((b,i)=>{
   b.title='滚轮向上增加、向下减少当前参数';
   b.addEventListener('wheel',e=>{
@@ -52,7 +55,7 @@ gridButtons.forEach((b,i)=>{
       ?Math.max(24,Math.min(96,s.note+direction))
       :mode==='gate'?Math.max(0,Math.min(400,s.gate+direction*5)):mode==='ratchet'?Math.max(1,Math.min(8,s.ratchet+direction)):Math.max(mode==='velocity'?0.05:0,Math.min(1,Math.round((s[mode]+direction*0.05)*100)/100));
     if(s.on&&s[mode]===value)return;
-    checkpoint();selected=i;s[mode]=value;s.on=true;
+    checkpoint();selected=i;s[mode]=value;s.on=true;if(mode==='note')previewEditedNote();
     renderGrid();renderStep();save();
   },{passive:false});
 });
@@ -117,7 +120,7 @@ const fxControls=fxSpecs.map(spec=>{
 function renderFx(){fxControls.forEach(({spec,row,toggle,controls})=>{const fx=editingFx()[spec.id];row.classList.toggle('enabled',fx.enabled);toggle.setAttribute('aria-pressed',String(fx.enabled));controls.forEach(({id,input,output})=>{input.value=fx[id];output.textContent=fxValue(id,fx[id]);});});$('#fxCount').textContent=Object.values(editingFx()).filter(f=>f.enabled).length+' / 5 ON';}
 function renderProject(){ $('#projectName').value=project.name;$('#bpm').value=project.bpm;$('#swing').value=project.swing;$('#mobileSwing').value=project.swing;$('#mobileSwingValue').textContent=project.swing+'%';$('#swingValue').textContent=project.swing+'%';$('#master').value=Math.round(project.master*100);renderEditor();renderFx();renderSong();}
 $('#modes').onclick=e=>{const button=e.target.closest('button'),editor=button?.dataset.editor,m=button?.dataset.mode;if(!editor&&!m)return;$('.sequencePanel').classList.toggle('modQuickActive',!!editor);$('#modQuick').hidden=!editor;[...$('#modes').children].forEach(b=>b.classList.toggle('active',b===button));if(editor){modUI.open(editor);return;}mode=m;$('#random').innerHTML=icon('shuffle')+randomLabels[mode];renderGrid();};
-for(const k of ['velocity','probability','note','ratchet','gate']){const input=$('#'+k);input.addEventListener('pointerdown',checkpoint);input.addEventListener('keydown',e=>{if(e.key.startsWith('Arrow'))checkpoint();});input.oninput=()=>{const s=current().steps[selected];s[k]=Number(input.value)/(['note','ratchet','gate'].includes(k)?1:100);s.on=true;renderGrid();renderStep();save();};}
+for(const k of ['velocity','probability','note','ratchet','gate']){const input=$('#'+k);input.addEventListener('pointerdown',checkpoint);input.addEventListener('keydown',e=>{if(e.key.startsWith('Arrow'))checkpoint();});input.oninput=()=>{const s=current().steps[selected];s[k]=Number(input.value)/(['note','ratchet','gate'].includes(k)?1:100);s.on=true;renderGrid();renderStep();save();if(k==='note')previewEditedNote();};}
 $('#kind').onchange=()=>{checkpoint();current().kind=$('#kind').value;renderEditor();save();};
 for(const k of ['mute','solo'])$('#'+k).onclick=()=>{checkpoint();if(k==='solo')toggleSolo(project.patterns[project.pattern],track);else current().mute=!current().mute;renderEditor();save();};
 $('#audition').onclick=async()=>{try{await engine.preview(current(),{...current().steps[selected],velocity:0.8});}catch{toast('音频启动失败，请重新点按试听');}};
@@ -135,9 +138,10 @@ $('#save').onclick=()=>download(new Blob([JSON.stringify(project,null,2)],{type:
 $('#load').onclick=()=>$('#file').click();
 $('#file').onchange=async()=>{const file=$('#file').files[0];if(!file)return;try{if(file.size>2000000)throw Error('项目文件过大');const loaded=validateProject(JSON.parse(await file.text()));await stop();checkpoint();project=loaded;renderProject();save();toast('项目已打开');}catch(e){toast('无法打开：'+e.message);}finally{$('#file').value='';}};
 $('#export').onclick=async()=>{const button=$('#export');button.disabled=true;button.textContent='正在渲染声音…';try{const wav=await renderWav(clone(project),$('#exportMode').value);download(wav,`loopfield-${$('#exportMode').value==='song'?'song':patternName(project.pattern)}.wav`);toast('已导出 WAV，包含 FX 尾音');}catch{toast('导出失败，请使用新版 Chrome 或 Edge');}finally{button.disabled=false;button.innerHTML=icon('download')+'导出 WAV';}};
-document.addEventListener('keydown',e=>{if(/INPUT|SELECT|TEXTAREA/.test(e.target.tagName)||e.ctrlKey||e.metaKey||e.altKey)return;if(e.code==='Space'){e.preventDefault();$('#play').click();}else if(/^[1-8]$/.test(e.key)){track=Number(e.key)-1;renderEditor();}else if(['ArrowUp','ArrowDown'].includes(e.key)){e.preventDefault();checkpoint();const s=current().steps[selected];s.note=Math.max(24,Math.min(96,s.note+(e.key==='ArrowUp'?1:-1)));renderStep();renderGrid();save();}});
+document.addEventListener('keydown',e=>{if(/INPUT|SELECT|TEXTAREA/.test(e.target.tagName)||e.ctrlKey||e.metaKey||e.altKey)return;if(e.code==='Space'){e.preventDefault();$('#play').click();}else if(/^[1-8]$/.test(e.key)){track=Number(e.key)-1;renderEditor();}else if(['ArrowUp','ArrowDown'].includes(e.key)){e.preventDefault();checkpoint();const s=current().steps[selected];s.note=Math.max(24,Math.min(96,s.note+(e.key==='ArrowUp'?1:-1)));renderStep();renderGrid();save();previewEditedNote();}});
 for(const [id,name,label] of [['play','play',''],['save','save','保存项目'],['load','upload','打开'],['allReset','trash','全部清空'],['newPattern','plus','空白'],['copyPattern','copy','复制'],['openTools','sliders','OCT / 调式'],['closeTools','close','关闭'],['random','shuffle',randomLabels[mode]],['clear','trash','清空轨道'],['undo','undo','撤销'],['octDown','minus','OCT'],['octUp','plus','OCT'],['applyScale','music','转换调式'],['mute','volume-x','MUTE'],['solo','headphone','SOLO'],['audition','headphone','试听音色'],['export','download','导出 WAV'],['addSongRow','plus','添加乐段']]){$('#'+id).innerHTML=icon(name)+label;$('#'+id).classList.add('iconButton');}
 for(const [tab,name] of [['sequence','grid-3x3'],['song','bulletlist'],['sound','music'],['fx','sliders'],['visual','image'],['project','file']])document.querySelector(`.mobileNav [data-tab="${tab}"] span`).innerHTML=icon(name);
+setupMidi(engine);
 modUI=setupModUI({current,checkpoint,save});renderProject();startVisuals(engine);
 const mobileQuery=matchMedia('(max-width:760px)');function placeActions(){const parent=mobileQuery.matches?$('#mobileActions'):$('.gridtools');for(const id of ['random','clear'])parent.append($('#'+id));(mobileQuery.matches?$('.patternBar'):$('.gridtools')).append($('#undo'));}placeActions();mobileQuery.addEventListener('change',placeActions);
 
@@ -154,7 +158,7 @@ setupMobile({
   selectStep:i=>{selected=i;renderGrid();renderStep();},
   read:i=>({mode,value:current().steps[i][mode]}),
   checkpoint,
-  change:(i,key,value)=>{selected=i;current().steps[i][key]=value;current().steps[i].on=true;renderGrid();renderStep();save();}
+  change:(i,key,value)=>{selected=i;current().steps[i][key]=value;current().steps[i].on=true;renderGrid();renderStep();save();if(key==='note')previewEditedNote();}
 });
 
 $('#mobileSwing').oninput=()=>{project.swing=Number($('#mobileSwing').value);$('#swing').value=project.swing;$('#swingValue').textContent=project.swing+'%';$('#mobileSwingValue').textContent=project.swing+'%';save();};
