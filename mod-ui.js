@@ -43,19 +43,25 @@ export function setupModUI({current,checkpoint,save}){
       const remove=document.createElement('button');remove.textContent='×';remove.setAttribute('aria-label',`删除映射 ${index+1}`);remove.onclick=()=>{checkpoint();l.routes.splice(index,1);changed();};row.append(remove);$('#modRoutes').append(row);});$('#addModRoute').disabled=l.routes.length>=6;
     $('#arpEnabled').checked=a.enabled;$('#arpStyle').value=a.style;$('#arpChord').value=a.chord;$('#arpOrder').value=a.order;$('#arpRate').value=a.rate;$('#arpOctaves').value=a.octaves;$('#arpTriplet').checked=a.triplet;$('#arpCustom').value=a.custom.join(', ');$('#arpCustomField').hidden=a.chord!=='custom';$('#arpPreview').textContent=arpOffsets(a).map(n=>(n>0?'+':'')+n).join(' → ');
   }
-  const wavePaths={sine:'M2 12 Q8 -5 14 12 T26 12',triangle:'M2 19 L8 4 L20 20 L26 5',square:'M2 19 H8 V5 H20 V19 H26',up:'M2 20 L14 4 V20 L26 4',down:'M2 4 L14 20 V4 L26 20',random:'M2 18 H7 V8 H12 V15 H18 V4 H23 V12 H27',custom:'M2 19 L7 6 L12 12 L18 4 L26 18'};
+  function pixelIcon(lines){const pixels=new Set();for(const line of lines)for(let i=1;i<line.length;i++){const [x,y]=line[i-1],[xx,yy]=line[i],steps=Math.max(Math.abs(xx-x),Math.abs(yy-y),1);for(let j=0;j<=steps;j++)pixels.add(Math.round(x+(xx-x)*j/steps)+','+Math.round(y+(yy-y)*j/steps));}return `<svg viewBox="0 0 24 24" aria-hidden="true" shape-rendering="crispEdges">${[...pixels].map(p=>{const [x,y]=p.split(',').map(Number);return `<rect x="${x*2}" y="${y*2}" width="2" height="2" fill="currentColor"/>`;}).join('')}</svg>`;}
+  const wavePoints={sine:[6,3,2,2,3,6,8,9,9,8,6],triangle:[9,7,5,3,1,3,5,7,9,7,5],square:[9,9,2,2,2,2,9,9,9,2,2],up:[9,7,5,3,1,9,7,5,3,1,9],down:[1,3,5,7,9,1,3,5,7,9,1],random:[8,8,3,3,6,6,1,1,5,5,8],custom:[9,7,3,5,6,4,1,3,6,8,7]};
   const presetBar=document.createElement('div');presetBar.className='wavePresets';presetBar.setAttribute('aria-label','LFO 波形预置');
-  for(const option of $('#lfoShape').options){const button=document.createElement('button');button.dataset.shape=option.value;button.title=option.text;button.setAttribute('aria-label',option.text+'波形');button.innerHTML=`<svg viewBox="0 0 28 24" aria-hidden="true"><path d="${wavePaths[option.value]}"/></svg>`;button.onclick=()=>{$('#lfoShape').value=option.value;$('#lfoShape').onchange({target:$('#lfoShape')});if(option.value==='custom')showSettings();};presetBar.append(button);}
+  for(const option of $('#lfoShape').options){const button=document.createElement('button');button.dataset.shape=option.value;button.title=option.text;button.setAttribute('aria-label',option.text+'波形');button.innerHTML=pixelIcon([wavePoints[option.value].map((y,x)=>[x+1,y])]);button.onclick=()=>{$('#lfoShape').value=option.value;$('#lfoShape').onchange({target:$('#lfoShape')});if(option.value==='custom')showSettings();};presetBar.append(button);}
 
   const orderBar=document.createElement('div');orderBar.className='arpDirections';orderBar.setAttribute('aria-label','琶音顺序');
-  for(const [value,icon,name] of [['up','↗','上行'],['down','↘','下行'],['bounce','↗↘','往返'],['random','⤨','随机']]){const button=document.createElement('button');button.dataset.order=value;button.textContent=icon;button.title=name;button.setAttribute('aria-label',name+'琶音');button.onclick=()=>{$('#arpOrder').value=value;$('#arpOrder').onchange({target:$('#arpOrder')});};orderBar.append(button);}
+  const arrows={up:[[[2,9],[9,2]],[[5,2],[9,2],[9,6]]],down:[[[2,2],[9,9]],[[5,9],[9,9],[9,5]]],bounce:[[[1,9],[5,2],[10,9]],[[7,9],[10,9],[10,6]]],random:[[[1,3],[3,3],[8,9],[10,9]],[[1,9],[3,9],[8,3],[10,3]],[[8,1],[10,3],[8,5]],[[8,7],[10,9],[8,11]]]};
+  for(const [value,name] of [['up','上行'],['down','下行'],['bounce','往返'],['random','随机']]){const button=document.createElement('button');button.dataset.order=value;button.innerHTML=pixelIcon(arrows[value]);button.title=name;button.setAttribute('aria-label',name+'琶音');button.onclick=()=>{$('#arpOrder').value=value;$('#arpOrder').onchange({target:$('#arpOrder')});};orderBar.append(button);}
 
   quick.innerHTML='<button id="quickPower" aria-label="开关当前调制" title="开关" aria-pressed="false">⏻</button><button id="quickSlot" aria-label="切换 LFO 编号" title="切换 LFO 1 / 2">1</button><button id="quickSettings" aria-label="展开调制设置" title="详细设置" aria-expanded="false">⋯</button>';
+  $('#quickPower').innerHTML=pixelIcon([[[3,3],[2,4],[2,8],[4,10],[8,10],[10,8],[10,4],[9,3]],[[6,1],[6,6]]]);$('#quickSettings').innerHTML=pixelIcon([[[2,6],[2,6]],[[6,6],[6,6]],[[10,6],[10,6]]]);
   quick.insertBefore(presetBar,$('#quickSettings'));quick.insertBefore(orderBar,$('#quickSettings'));
   $('#quickPower').onclick=()=>{checkpoint();const target=activeTab==='lfo'?lfo():current().mod.arp;target.enabled=!target.enabled;changed();};
   $('#quickSlot').onclick=()=>{slot=1-slot;$('#lfoSlot').value=slot;render();};
   function showSettings(){$('#modTitle').textContent=activeTab.toUpperCase()+' · '+current().name;$('#modDialog').showModal();$('#quickSettings').setAttribute('aria-expanded','true');render();}
-  $('#quickSettings').onclick=showSettings;$('#closeMod').onclick=()=>$('#modDialog').close();$('#modDialog').onclose=()=>$('#quickSettings').setAttribute('aria-expanded','false');
+  $('#quickSettings').onclick=showSettings;$('#modDialog').onclose=()=>$('#quickSettings').setAttribute('aria-expanded','false');
+  const dialog=$('#modDialog');
+  const outside=e=>{const r=dialog.getBoundingClientRect();return e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom;};
+  dialog.addEventListener('click',e=>{if(e.target===dialog&&outside(e))dialog.close();});
   function open(tab){activeTab=tab;$('#lfoEditor').hidden=tab!=='lfo';$('#arpEditor').hidden=tab!=='arp';presetBar.hidden=tab!=='lfo';orderBar.hidden=tab!=='arp';$('#quickSlot').hidden=tab!=='lfo';render();}
   render();return {render,open};
 }
