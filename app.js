@@ -23,7 +23,25 @@ const engine=new Engine(()=>project,({step,hits,pattern,song,ended})=>{
 function toast(text){$('#toast').textContent=text;$('#toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('#toast').classList.remove('show'),2600);}
 function save(){clearTimeout(saveTimer);saveTimer=setTimeout(()=>{try{localStorage.setItem(key,JSON.stringify(project));$('#saveState').textContent='已保存到本机';}catch{$('#saveState').textContent='请导出项目保存';}},150);}
 function checkpoint(){history.push(clone(project));if(history.length>30)history.shift();$('#undo').disabled=false;}
-const gridButtons=Array.from({length:STEPS},(_,i)=>{const b=document.createElement('button');b.className='step';b.innerHTML=`<small>${String(i+1).padStart(2,'0')}</small><span class="value"></span><i class="glyph"></i>`;b.onclick=()=>{checkpoint();selected=i;const s=current().steps[i];s.on=!s.on;renderGrid();renderStep();save();};b.oncontextmenu=e=>{e.preventDefault();selected=i;renderGrid();renderStep();};$('#grid').append(b);return b;});
+let stepClipboard=null,menuTarget=null;
+const stepMenu=$('#stepMenu');
+function copyStep(target){stepClipboard=clone(project.patterns[target.pattern][target.track].steps[target.step]);toast('已复制 STEP '+String(target.step+1).padStart(2,'0'));}
+function pasteStep(target){if(!stepClipboard){toast('请先复制一个 step');return;}checkpoint();project.patterns[target.pattern][target.track].steps[target.step]=clone(stepClipboard);renderGrid();renderStep();save();toast('已粘贴 · 可撤销');}
+$('#copyStep').innerHTML=icon('copy')+'复制 STEP <kbd>Ctrl+C</kbd>';
+$('#pasteStep').innerHTML=icon('clipboard')+'粘贴 STEP <kbd>Ctrl+V</kbd>';
+$('#copyStep').onclick=()=>{copyStep(menuTarget);stepMenu.hidden=true;gridButtons[menuTarget.step].focus({preventScroll:true});};
+$('#pasteStep').onclick=()=>{pasteStep(menuTarget);stepMenu.hidden=true;gridButtons[menuTarget.step].focus({preventScroll:true});};
+document.addEventListener('pointerdown',e=>{if(!stepMenu.contains(e.target))stepMenu.hidden=true;});
+window.addEventListener('resize',()=>stepMenu.hidden=true);
+document.addEventListener('scroll',()=>stepMenu.hidden=true,true);
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){stepMenu.hidden=true;return;}
+  if(!(e.ctrlKey||e.metaKey)||e.altKey||e.shiftKey||e.target.closest('input,select,textarea,[contenteditable],dialog[open]'))return;
+  const key=e.key.toLowerCase();if(!['c','v'].includes(key)||window.getSelection()?.toString())return;
+  e.preventDefault();const target=stepMenu.hidden?{pattern:project.pattern,track,step:selected}:menuTarget;
+  if(key==='c')copyStep(target);else pasteStep(target);stepMenu.hidden=true;
+});
+const gridButtons=Array.from({length:STEPS},(_,i)=>{const b=document.createElement('button');b.className='step';b.innerHTML=`<small>${String(i+1).padStart(2,'0')}</small><span class="value"></span><i class="glyph"></i>`;b.onclick=()=>{checkpoint();selected=i;const s=current().steps[i];s.on=!s.on;renderGrid();renderStep();save();};b.oncontextmenu=e=>{e.preventDefault();selected=i;renderGrid();renderStep();b.focus({preventScroll:true});menuTarget={pattern:project.pattern,track,step:i};$('#pasteStep').disabled=!stepClipboard;stepMenu.hidden=false;const r=b.getBoundingClientRect(),x=e.clientX||r.left,y=e.clientY||r.bottom;stepMenu.style.left=Math.max(8,Math.min(x,innerWidth-stepMenu.offsetWidth-8))+'px';stepMenu.style.top=Math.max(8,Math.min(y,innerHeight-stepMenu.offsetHeight-8))+'px';$('#copyStep').focus({preventScroll:true});};$('#grid').append(b);return b;});
 gridButtons.forEach((b,i)=>{
   b.title='滚轮向上增加、向下减少当前参数';
   b.addEventListener('wheel',e=>{
