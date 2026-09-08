@@ -15,8 +15,21 @@ export function setupModUI({current,checkpoint,save}){
   for(const [id,key,type] of [['lfoEnabled','enabled','check'],['lfoSmooth','smooth','bool'],['lfoSync','sync','bool'],['lfoRetrigger','retrigger','bool'],['lfoRate','rate','number'],['lfoHz','hz','number']])$('#'+id).onchange=e=>{const v=type==='check'?e.target.checked:type==='bool'?e.target.value==='true':Number(e.target.value);if(type==='number'&&(!Number.isFinite(v)||v<(key==='hz'?.05:.25)||v>(key==='hz'?20:16))){render();return;}checkpoint();lfo()[key]=v;changed();};
   $('#lfoShape').onchange=e=>{checkpoint();lfo().shape=e.target.value;if(lfo().shape!=='custom')lfo().points=presetPoints(lfo().shape);lfo().smooth=!['square','random'].includes(lfo().shape);changed();};
   const curve=$('#lfoCurve'),ctx=curve.getContext('2d');let dragging=false;
-  function draw(){const l=lfo(),css=getComputedStyle(document.documentElement);ctx.fillStyle=css.getPropertyValue('--paper');ctx.fillRect(0,0,480,160);ctx.strokeStyle=css.getPropertyValue('--line');ctx.lineWidth=1;for(let i=0;i<=4;i++){ctx.beginPath();ctx.moveTo(12,12+i*34);ctx.lineTo(468,12+i*34);ctx.stroke();}ctx.strokeStyle=css.getPropertyValue('--accent');ctx.lineWidth=2;ctx.beginPath();for(let i=0;i<=256;i++){const v=lfoValue({...l,sync:false,hz:1,retrigger:false},i===256?.999999:i/256,0,60),x=12+i/256*456,y=148-v*136;i?ctx.lineTo(x,y):ctx.moveTo(x,y);}ctx.stroke();l.points.forEach((v,i)=>{ctx.fillStyle=css.getPropertyValue('--ink');ctx.fillRect(12+i/16*456-3,148-v*136-3,6,6);});}
-  function editPoint(e){const r=curve.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*480,y=(e.clientY-r.top)/r.height*160,index=Math.max(0,Math.min(15,Math.round((x-12)/456*16)));lfo().points[index]=Math.max(0,Math.min(1,(148-y)/136));lfo().shape='custom';$('#lfoPoint').value=index;save();renderCurve();}
+  function draw(){
+    const w=curve.clientWidth,h=curve.clientHeight;if(!w||!h)return;
+    const dpr=devicePixelRatio||1,bw=Math.round(w*dpr),bh=Math.round(h*dpr);
+    if(curve.width!==bw||curve.height!==bh){curve.width=bw;curve.height=bh;}
+    ctx.setTransform(bw/w,0,0,bh/h,0,0);ctx.imageSmoothingEnabled=false;
+    const l=lfo(),css=getComputedStyle(document.documentElement),pad=12,plotW=w-pad*2,plotH=h-pad*2;
+    ctx.fillStyle=css.getPropertyValue('--paper');ctx.fillRect(0,0,w,h);
+    ctx.fillStyle=css.getPropertyValue('--line');for(let i=0;i<=4;i++)ctx.fillRect(pad,Math.round(pad+i*plotH/4),plotW,1);
+    ctx.fillStyle=css.getPropertyValue('--accent');let previous;
+    for(let x=0;x<=plotW;x+=2){const phase=Math.min(.999999,x/plotW),v=lfoValue({...l,sync:false,hz:1,retrigger:false},phase,0,60),y=Math.round((h-pad-v*plotH)/2)*2;
+      if(previous!==undefined)for(let yy=Math.min(previous,y);yy<=Math.max(previous,y);yy+=2)ctx.fillRect(pad+x,yy,2,2);else ctx.fillRect(pad+x,y,2,2);previous=y;}
+    l.points.forEach((v,i)=>{const x=Math.round((pad+i/16*plotW)/2)*2,y=Math.round((h-pad-v*plotH)/2)*2;ctx.fillStyle=css.getPropertyValue(Number($('#lfoPoint').value)===i?'--accent':'--ink');ctx.fillRect(x-4,y-4,8,8);ctx.fillStyle=css.getPropertyValue('--paper');ctx.fillRect(x-2,y-2,4,4);});
+  }
+  new ResizeObserver(draw).observe(curve);
+  function editPoint(e){const r=curve.getBoundingClientRect(),x=e.clientX-r.left-curve.clientLeft,y=e.clientY-r.top-curve.clientTop,index=Math.max(0,Math.min(15,Math.round((x-12)/(curve.clientWidth-24)*16)));lfo().points[index]=Math.max(0,Math.min(1,(curve.clientHeight-12-y)/(curve.clientHeight-24)));lfo().shape='custom';$('#lfoPoint').value=index;save();renderCurve();}
   curve.onpointerdown=e=>{e.preventDefault();checkpoint();dragging=true;curve.setPointerCapture(e.pointerId);editPoint(e);};curve.onpointermove=e=>{if(dragging)editPoint(e);};curve.onpointerup=curve.onpointercancel=()=>dragging=false;
   $('#lfoPoint').onchange=renderCurve;$('#lfoPointValue').onpointerdown=checkpoint;$('#lfoPointValue').onkeydown=e=>{if(e.key.startsWith('Arrow'))checkpoint();};$('#lfoPointValue').oninput=e=>{lfo().points[Number($('#lfoPoint').value)]=Number(e.target.value)/100;lfo().shape='custom';save();renderCurve();};
   function renderCurve(){const v=lfo().points[Number($('#lfoPoint').value)];$('#lfoPointValue').value=Math.round(v*100);$('#pointValue').textContent=Math.round(v*100)+'%';$('#lfoShape').value=lfo().shape;quick.querySelectorAll('[data-shape]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.shape===lfo().shape)));draw();}
