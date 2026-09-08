@@ -1,0 +1,21 @@
+<!doctype html><meta charset="utf-8"><title>Modulation audio checks</title><button id="run">Run audio checks</button><pre id="result">READY</pre><script type="module">
+import {makeEmptyProject} from './model.js';
+import {playStep,renderWav} from './audio.js';
+import {createFx} from './fx.js';
+import {defaultFx} from './fx-model.js';
+const assert=(ok,msg)=>{if(!ok)throw Error(msg);};
+const rms=(data,a,b)=>Math.sqrt(data.slice(Math.floor(a*24000),Math.floor(b*24000)).reduce((v,x)=>v+x*x,0)/Math.floor((b-a)*24000));
+async function render(config=()=>{},second=false,fxOn=false){
+ const t=makeEmptyProject().patterns[0][0];Object.assign(t,{kind:'sine',fm:0,attack:.005,decay:.06,volume:.7,cutoff:18000,resonance:.1,pan:0});const s={on:true,note:60,velocity:1,probability:1,ratchet:1,gate:400};config(t);
+ const ctx=new OfflineAudioContext(1,36000,24000),fx=defaultFx();fx.delay.enabled=fxOn;fx.delay.time=.1;const chain=createFx(ctx,fx);chain.output.connect(ctx.destination);const bus={input:chain.input,fx:chain,origin:.01};playStep(ctx,bus,t,s,.01,.25,120);chain.modulate(t.mod,fx,.01,1.3,.01,120,.01);if(second)playStep(ctx,bus,t,{...s,note:72,gate:100},.31,.25,120);const data=(await ctx.startRendering()).getChannelData(0);assert(data.every(Number.isFinite),'nonfinite audio');assert(rms(data,.05,.15)>.0001,'silent audio');return data;
+}
+document.querySelector('#run').onclick=async()=>{const out=document.querySelector('#result');out.textContent='RUNNING';try{
+ const base=await render();const trem=await render(t=>{const l=t.mod.lfos[0];l.enabled=true;l.shape='square';l.smooth=false;l.rate=1;l.points=Array.from({length:16},(_,i)=>i<8?0:1);l.routes=[{target:'volume',from:.05,to:1}];});assert(rms(trem,.08,.18)<rms(trem,.32,.42)*.15,'LFO tremolo failed');
+ const arp=t=>{t.mod.arp.enabled=true;t.mod.arp.rate=16;};const normal=await render(arp);const chip=await render(t=>{arp(t);t.mod.arp.style='chip';});assert(normal.some((v,i)=>Math.abs(v-chip[i])>.01),'ARP modes identical');assert(base.some((v,i)=>Math.abs(v-chip[i])>.01),'CHIP unchanged');
+ const cut=await render(t=>{arp(t);t.mod.arp.style='chip';},true);assert(rms(cut,.8,.95)<.00001,'previous root not cut');
+ await render(t=>{const l=t.mod.lfos[0];l.enabled=true;l.routes=[{target:'fm',from:0,to:4},{target:'ratio',from:1,to:3},{target:'pitch',from:-2,to:2}];});
+ const wet=await render(t=>{const l=t.mod.lfos[0];l.enabled=true;l.routes=[{target:'delay.mix',from:0,to:1},{target:'delay.feedback',from:.1,to:.5}];},false,true);assert(wet.some((v,i)=>Math.abs(v-base[i])>.005),'FX mapping unchanged');
+ const p=makeEmptyProject();p.bpm=220;const t=p.patterns[0][0];t.steps[0].on=true;t.steps[0].gate=400;t.mod.arp.enabled=true;t.mod.arp.style='chip';t.mod.lfos[0].enabled=true;t.mod.lfos[0].routes=[{target:'cutoff',from:300,to:5000}];p.song=[{pattern:0,repeats:2}];const wav=await renderWav(p,'song'),d=new DataView(await wav.arrayBuffer());let peak=0;for(let i=44;i<d.byteLength;i+=2)peak=Math.max(peak,Math.abs(d.getInt16(i,true)));assert(peak>100,'WAV silent');out.textContent=JSON.stringify({status:'PASS',tremolo:[rms(trem,.08,.18),rms(trem,.32,.42)],rootCutRms:rms(cut,.8,.95),wavBytes:wav.size,wavPeak:peak,checks:['LFO volume','normal vs CHIP','new root cuts old ARP','FM from zero','per-track FX','Song WAV']},null,2);
+ }catch(e){out.textContent='FAIL '+e.stack;}};
+
+</script>

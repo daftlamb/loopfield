@@ -1,3 +1,4 @@
+import {defaultMod,validateMod} from './modulation.js';
 import {defaultFx,validateFx} from './fx-model.js';
 export const STEPS=32;
 export const labels=['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];
@@ -15,7 +16,7 @@ export function transformNotes(tracks,{octave=0,root=0,scale=null}){
 export function makeProject(){
   const kinds=['fm','triangle','sine','square','kick','snare','hat','noise'];
   const names=['GLASS','LOW TIDE','SOFT KEYS','PULSE','KICK','SNARE','HI-HAT','DUST'];
-  const tracks=kinds.map((kind,i)=>({name:names[i],kind,volume:i<4?0.48:0.65,attack:0.006,decay:i===2?0.6:0.2,cutoff:i===1?850:6500,resonance:0.7,fm:i===0?1.4:0,ratio:2,pan:i===0?-0.2:i===2?0.25:0,mute:false,solo:false,
+  const tracks=kinds.map((kind,i)=>({name:names[i],kind,mod:defaultMod(),volume:i<4?0.48:0.65,attack:0.006,decay:i===2?0.6:0.2,cutoff:i===1?850:6500,resonance:0.7,fm:i===0?1.4:0,ratio:2,pan:i===0?-0.2:i===2?0.25:0,mute:false,solo:false,
     steps:Array.from({length:STEPS},()=>({on:false,note:i===1?36:60,velocity:0.75,probability:1,ratchet:1,gate:0}))}));
   const set=(t,entries)=>entries.forEach(([step,note])=>{tracks[t].steps[step]={on:true,note,velocity:0.6+(step%3)*0.1,probability:1,ratchet:1,gate:0};});
   set(0,[[0,69],[3,76],[6,72],[10,67],[14,71],[16,69],[19,76],[22,79],[26,76],[30,71]]);
@@ -34,6 +35,8 @@ export function validateProject(p){
   for(const tracks of p.patterns){
     if(!Array.isArray(tracks)||tracks.length!==8)throw Error('项目需要 8 条轨道');
     for(const t of tracks){
+      if(t&&t.mod===undefined)t.mod=defaultMod();
+      if(t)validateMod(t.mod);
       if(!t||typeof t.name!=='string'||t.name.length>40||!['fm','sine','triangle','square','sawtooth','kick','snare','hat','noise'].includes(t.kind)||typeof t.mute!=='boolean'||typeof t.solo!=='boolean')throw Error('音轨格式不正确');
       for(const [k,a,b] of [['volume',0,1],['attack',0.002,1],['decay',0.03,2],['cutoff',80,18000],['resonance',0.1,12],['fm',0,8],['ratio',0.5,8],['pan',-1,1]])if(!num(t[k],a,b))throw Error('音色参数超出范围');
       if(!Array.isArray(t.steps)||t.steps.length!==STEPS||t.steps.some(s=>!s||typeof s.on!=='boolean'||!Number.isInteger(s.note)||!num(s.note,24,96)||!num(s.velocity,0.05,1)||!num(s.probability,0,1)))throw Error('音符格式不正确');
