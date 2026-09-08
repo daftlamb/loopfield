@@ -47,3 +47,31 @@ test('WAV tail accounts for the highest mapped delay feedback and time',()=>{con
 
 import {modulateStep} from './audio.js';
 test('FX retriggers follow ratchets and continue through empty steps',()=>{const calls=[],bus={origin:0,triggers:[1,1.125,1.25,1.375],noteStart:1,fx:{modulate(...args){calls.push(args);}}};modulateStep(bus,{}, {},1,.5,120);assert.deepEqual(calls.map(a=>a[4]),[1,1.125,1.25,1.375]);modulateStep(bus,{}, {},1.5,.5,120);assert.equal(calls.at(-1)[4],1.375);assert.equal(calls.at(-1)[2],1.5);});
+
+
+test('undo replacement preserves transport timing and uses restored steps',()=>{
+  let p=makeProject();p.patterns.forEach(ts=>ts.forEach(t=>t.steps.forEach(s=>s.on=false)));
+  const restored=clone(p),e=new Engine(()=>p,()=>{}),ctx={currentTime:2};
+  Object.assign(e,{ctx,playing:true,nextTime:2.05,nextStep:12,activePattern:2,pendingPattern:3,songPosition:0,ended:false});
+  p=restored;e.syncProject();e.schedule();
+  assert.equal(e.ctx,ctx);assert.equal(e.playing,true);assert.equal(e.queue[0].step,12);assert.equal(e.queue[0].time,2.05);assert.equal(e.queue[0].pattern,2);
+});
+test('undoing pattern creation keeps the scheduler within restored bounds',()=>{
+  const p=makeProject();p.patterns=p.patterns.slice(0,1);p.pattern=0;p.song=[{pattern:0,repeats:1}];p.patterns[0].forEach(t=>t.steps.forEach(s=>s.on=false));
+  const e=new Engine(()=>p,()=>{});Object.assign(e,{ctx:{currentTime:0},playing:true,nextTime:.01,nextStep:9,activePattern:3,pendingPattern:2,songPosition:7,queue:[{time:0,pattern:3}],ended:false});
+  e.syncProject();e.schedule();assert.equal(e.activePattern,0);assert.equal(e.pendingPattern,null);assert.equal(e.songPosition,0);assert.equal(e.queue[0].step,9);assert.equal(e.queue[0].pattern,0);
+});
+
+
+import {createFx} from './fx.js';
+import {defaultFx} from './fx-model.js';
+test('bypassed effects defer buffers and curves until enabled',()=>{
+  let buffers=0,curves=0;
+  const node=()=>new Proxy({connect(){},start(){}},{get(o,k){return o[k]??(o[k]={setValueAtTime(){},setTargetAtTime(){}});},set(o,k,v){if(k==='curve')curves++;o[k]=v;return true;}});
+  const ctx=new Proxy({currentTime:0,sampleRate:100,createBuffer(channels,length){buffers++;return {getChannelData:()=>new Float32Array(length)};}},{get(o,k){return o[k]??node;}});
+  const settings=defaultFx(),fx=createFx(ctx,settings);
+  assert.equal(buffers,0);assert.equal(curves,0);
+  settings.reverb.enabled=true;settings.crusher.enabled=true;fx.update(settings);
+  assert.equal(buffers,1);assert.equal(curves,1);
+  fx.update(settings);assert.equal(buffers,1);assert.equal(curves,1);
+});

@@ -20,10 +20,10 @@ export function createFx(ctx,settings=defaultFx()){
     const set=(param,value)=>{if(first)param.setValueAtTime(value,ctx.currentTime);else param.setTargetAtTime(value,ctx.currentTime,0.015);};
     for(const [id,s] of Object.entries(stages)){const f=fx[id],mix=f.enabled?(id==='compressor'?1:f.mix):0;set(s.dry.gain,1-mix);set(s.wet.gain,mix*(id==='chorus'?0.5:1));}
     set(crusher.drive.gain,fx.crusher.drive);
-    if(oldBits!==fx.crusher.bits){const curve=new Float32Array(65537),levels=2**(fx.crusher.bits-1);for(let i=0;i<curve.length;i++)curve[i]=Math.round((i/(curve.length-1)*2-1)*levels)/levels;crusher.shape.curve=curve;oldBits=fx.crusher.bits;}
+    if(fx.crusher.enabled&&oldBits!==fx.crusher.bits){const curve=new Float32Array(65537),levels=2**(fx.crusher.bits-1);for(let i=0;i<curve.length;i++)curve[i]=Math.round((i/(curve.length-1)*2-1)*levels)/levels;crusher.shape.curve=curve;oldBits=fx.crusher.bits;}
     set(chorus.lfo.frequency,fx.chorus.rate);chorus.depths.forEach(({depth,side})=>set(depth.gain,side*fx.chorus.depth/1000));
     set(delay.node.delayTime,fx.delay.time);set(delay.feedback.gain,fx.delay.feedback);
-    if(oldDecay!==fx.reverb.decay){const length=Math.ceil(ctx.sampleRate*fx.reverb.decay),buffer=ctx.createBuffer(2,length,ctx.sampleRate);let seed=1234;for(let c=0;c<2;c++){const d=buffer.getChannelData(c);for(let i=0;i<length;i++){seed=(1664525*seed+1013904223)>>>0;d[i]=(seed/2147483648-1)*Math.exp(-7*i/length)*(1-i/length);}}reverb.node.buffer=buffer;oldDecay=fx.reverb.decay;}
+    if(fx.reverb.enabled&&oldDecay!==fx.reverb.decay){const length=Math.ceil(ctx.sampleRate*fx.reverb.decay),buffer=ctx.createBuffer(2,length,ctx.sampleRate);let seed=1234;for(let c=0;c<2;c++){const d=buffer.getChannelData(c);for(let i=0;i<length;i++){seed=(1664525*seed+1013904223)>>>0;d[i]=(seed/2147483648-1)*Math.exp(-7*i/length)*(1-i/length);}}reverb.node.buffer=buffer;oldDecay=fx.reverb.decay;}
     set(comp.node.threshold,fx.compressor.threshold);set(comp.node.ratio,fx.compressor.ratio);set(comp.makeup.gain,10**(fx.compressor.makeup/20));first=false;
   }
   const bindings=[];

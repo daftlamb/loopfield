@@ -73,7 +73,7 @@ export class Engine{
     if(this.ctx.state!=='running')throw new Error('Audio context is not running');
     if(!this.bus)this.bus=createBus(this.ctx,this.getProject().master,this.getProject().fx,this.getProject().trackFx);
   }
-  async start(){await this.init();if(this.playing)return;this.playing=true;this.nextTime=this.ctx.currentTime+0.07;this.nextStep=0;this.queue=[];this.songPosition=0;this.bus.tracks.forEach(bus=>bus.origin=this.nextTime);this.activePattern=this.getProject().pattern;this.pendingPattern=null;this.ended=false;
+  async start(){await this.init();if(this.playing)return;this.playing=true;this.nextTime=this.ctx.currentTime+0.015;this.nextStep=0;this.queue=[];this.songPosition=0;this.bus.tracks.forEach(bus=>bus.origin=this.nextTime);this.activePattern=this.getProject().pattern;this.pendingPattern=null;this.ended=false;
     this.worker=new Worker(new URL('./clock.js',import.meta.url));this.worker.onmessage=()=>this.schedule();this.schedule();}
   schedule(){if(!this.playing||this.ended)return;const p=this.getProject();if(this.nextTime<this.ctx.currentTime-0.1)this.nextTime=this.ctx.currentTime+0.03;
     while(this.nextTime<this.ctx.currentTime+0.12){
@@ -83,6 +83,13 @@ export class Engine{
       this.queue.push({time:this.nextTime,step,hits,pattern,song});this.nextTime+=stepDuration(p.bpm,p.swing,step);this.nextStep=(step+1)%STEPS;
       if(this.nextStep===0&&p.playMode==='song'){const next=nextSongPosition(p,this.songPosition);if(next===null){this.ended=true;this.queue.push({time:this.nextTime+projectTail(p),ended:true});break;}this.songPosition=next;}
     }
+  }
+  syncProject(){
+    const p=this.getProject();
+    this.activePattern=Math.min(this.activePattern??p.pattern,p.patterns.length-1);
+    if(this.pendingPattern!==null&&this.pendingPattern>=p.patterns.length)this.pendingPattern=null;
+    this.songPosition=Math.min(this.songPosition??0,songOrder(p).length-1);
+    this.queue=this.queue.filter(event=>event.ended||(event.pattern<p.patterns.length&&(!event.song||event.song.row<p.song.length)));
   }
   queuePattern(index){this.pendingPattern=index;}
   tick(){if(!this.ctx)return;let last;while(this.queue.length&&this.queue[0].time<=this.ctx.currentTime)last=this.queue.shift();if(last)this.onStep(last);}
