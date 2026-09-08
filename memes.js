@@ -23,40 +23,6 @@ export function drawMeme(scene,phase,energy,text,put){
      / /  /      | | | |
     (_(__/       (_(_(_/`);
 
-  }else if(scene==='memeDance'){
-    sprite(23+beat,8-bounce,beat?String.raw`       /\_/\
-  >>  ( o.o )  <<
-      / > < \
-     / /   \ \
-       )   (
-      /  ^  \
-     (__/ \__)`:String.raw`       /\_/\
-  <<  ( -w- )  >>
-      \  v  /
-       \   /
-       (   )
-      /  ^  \
-     (__/ \__)`);
-
-  }else if(scene==='memeBird'){
-    sprite(20,9-bounce,beat?String.raw`       _/\_
-     .'    '.
-   --   o    \
-     |   o    |
-     |  (..\  \______
-      \  \_\   _____===
-       '.___..'
-          /  /
-        _/  /_`:String.raw`       _/\_
-     .'    '.
-   --   -    \
-     |   o    |
-     |  (/..\ \______
-      \  \__/  _____===
-       '.___..'
-         /  /
-       _/  /_`);
-    text(37,6,beat?'?':'...',3);
   }else if(scene==='memeMoon'){
     sprite(10,3,String.raw`           .-'
         .-' /

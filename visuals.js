@@ -1,3 +1,4 @@
+import {drawMotion} from './motion-player.js';
 import {drawMeme,memeCaptions} from './memes.js';
 import {drawAnimal} from './animals.js';
 const palettes={
@@ -13,14 +14,7 @@ export function startVisuals(engine){
   let prefs={palette:'paper',scene:'random',slideshowVersion:2,sensitivity:1.4};
   try{const p=JSON.parse(localStorage.getItem('loopfield-visuals-v1'));if(p){if(palettes[p.palette])prefs.palette=p.palette;if(p.slideshowVersion===2&&(captions[p.scene]||p.scene==='random'))prefs.scene=p.scene;if(Number.isFinite(p.sensitivity)&&p.sensitivity>=0.5&&p.sensitivity<=3)prefs.sensitivity=p.sensitivity;}}catch{}
   const animalCanvas=document.createElement('canvas');animalCanvas.width=576;animalCanvas.height=432;const animalCtx=animalCanvas.getContext('2d',{willReadFrequently:true});
-  let phase=0,scene='memeCat',nextSceneAt=0,sceneBag=[];
-  const bounds={};
-  for(const name of Object.keys(memeCaptions)){
-    let minX=64,minY=32,maxX=0,maxY=0;
-    const point=(x,y,ch)=>{if(ch===' ')return;minX=Math.min(minX,Math.round(x));maxX=Math.max(maxX,Math.round(x));minY=Math.min(minY,Math.round(y));maxY=Math.max(maxY,Math.round(y));};
-    for(let f=0;f<64;f++)drawMeme(name,f/8,1,(x,y,str)=>[...str].forEach((ch,i)=>point(x+i,y,ch)),point);
-    bounds[name]={minX,minY,maxX,maxY};
-  }
+  let phase=0,scene='memeBird',nextSceneAt=0,sceneBag=[];
   let colors,energy=0,low=0,high=0,time=0,last=0,lastDraw=0;
   const fft=new Uint8Array(512),wave=new Float32Array(1024),levels=new Float32Array(64);
   const chars=Array(64*32).fill(' '),tones=new Uint8Array(64*32);
@@ -50,16 +44,6 @@ export function startVisuals(engine){
     }
 
   }
-  function rainScene(){
-    text(3,2,'___    ___       ____',2);text(2,3,'(   )__(   )_____(    )',2);
-    for(let y=9;y<26;y++){put(3,y,'|');put(18,y,'|');if(y%3===0)text(5,y,'[]  []  []',2);}
-    line(2,8,19,8,'_');line(2,26,20,26,'_');
-    line(47,10,47,26,'|');text(44,9,'_===_',3);text(45,10,'[ * ]',3);
-    const px=33+Math.sin(time*.23)*4;for(let x=-5;x<=5;x++)put(px+x,18-Math.round(Math.sqrt(Math.max(0,25-x*x))*.5),'_',3);
-    line(px,16,px,23,'|',3);text(px-1,21,'o');text(px-1,22,'/|');text(px-1,24,'/\\');
-    for(let i=0;i<85;i++){const x=(i*23.17+time*1.4)%64,y=(i*7.37+time*(8+high*9))%30;if(y<27)put(x,y,'/',i%4===0?1:2);}
-    for(let i=0;i<12;i++){const phase=(time*.9+i*.37)%2,width=1+phase*(1+low*3),x=4+(i*17)%57,y=27+i%4;for(let k=-width;k<=width;k++)put(x+k,y,phase<.5?'·':'~',i%3===0?3:2);}
-  }
   function cityScene(){
     text(47,3,' .--.');text(46,4,'(    )');text(47,5," '--'");
     for(let i=0;i<20;i++)put((i*29)%63,1+(i*7)%11,'.',2);
@@ -81,22 +65,23 @@ export function startVisuals(engine){
     for(let x=0;x<64;x++)levels[x]=levels[x]*.65+fft[Math.min(511,Math.floor(2**(x/63*8.7)))]/255*.35;
     if(prefs.scene==='random'){
       if(now>=nextSceneAt){
-        if(!sceneBag.length)sceneBag=Object.keys(captions).filter(name=>name!=='spectrum'&&name!==scene);
+        if(!sceneBag.length)sceneBag=['memeBird','memeDance','rain'].filter(name=>name!==scene);
         scene=sceneBag.splice(Math.floor(Math.random()*sceneBag.length),1)[0];nextSceneAt=now+12000;
       }
     }else scene=prefs.scene;
     canvas.dataset.scene=scene;
     const animal=scene==='horse';
     chars.fill(' ');tones.fill(0);
+    if(!drawMotion(scene,phase,low,high,put)){
     if(memeCaptions[scene])drawMeme(scene,phase,Math.min(1,energy*prefs.sensitivity*12),text,put);
     else if(animal){
       drawAnimal(animalCtx,phase,Math.min(1,energy*prefs.sensitivity*12),colors);
       {const pixels=animalCtx.getImageData(0,0,576,432).data;for(let y=0;y<32;y++)for(let x=0;x<64;x++){let strongest=0,tone=1;for(let dy=0;dy<12;dy++)for(let dx=0;dx<9;dx++){const i=((y*12+20+dy)*576+x*9+dx)*4;if(pixels[i+3]>strongest){strongest=pixels[i+3];tone=Math.abs(pixels[i]-parseInt(colors[4].slice(1,3),16))<5?3:1;}}if(strongest>70)put(x,y,'+',tone);}}
-    }else if(scene==='fish')fishScene();else if(scene==='rain')rainScene();else if(scene==='city')cityScene();else spectrum();
+    }else if(scene==='fish')fishScene();else if(scene==='city')cityScene();else spectrum();
+    }
     ctx.fillStyle=colors[5];ctx.fillRect(0,0,576,432);ctx.save();
-    const box=bounds[scene]??(scene==='horse'?{minX:12,minY:10,maxX:51,maxY:28}:{minX:0,minY:0,maxX:63,maxY:31});if(box){const w=(box.maxX-box.minX+1)*9,h=(box.maxY-box.minY+1)*12,scale=Math.min(400/w,270/h);ctx.translate(288,216);ctx.scale(scale,scale);ctx.translate(-((box.minX+box.maxX+1)*9/2),-((box.minY+box.maxY+1)*12/2+20));}
-    ctx.font='12px "Loop Pixel",monospace';ctx.textAlign='center';
-    for(let y=0;y<32;y++)for(let x=0;x<64;x++){const i=y*64+x;if(chars[i]===' ')continue;ctx.fillStyle=tones[i]===3?colors[4]:tones[i]===2?colors[7]:colors[6];ctx.fillText(chars[i],x*9+4,y*12+30);}
+    ctx.font='16px "Loop Pixel",monospace';ctx.textAlign='center';
+    for(let y=0;y<32;y++)for(let x=0;x<64;x++){const i=y*64+x;if(chars[i]===' ')continue;ctx.fillStyle=tones[i]===3?colors[4]:tones[i]===2?colors[7]:colors[6];ctx.fillText(chars[i],36+x*8,y*12+34);}
     ctx.restore();
   }
   requestAnimationFrame(draw);
