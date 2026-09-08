@@ -33,10 +33,10 @@ export function setupModUI({current,checkpoint,save}){
   const wavePaths={sine:'M2 12 Q8 -5 14 12 T26 12',triangle:'M2 19 L8 4 L20 20 L26 5',square:'M2 19 H8 V5 H20 V19 H26',up:'M2 20 L14 4 V20 L26 4',down:'M2 4 L14 20 V4 L26 20',random:'M2 18 H7 V8 H12 V15 H18 V4 H23 V12 H27',custom:'M2 19 L7 6 L12 12 L18 4 L26 18'};
   const presetBar=document.createElement('div');presetBar.className='wavePresets';presetBar.setAttribute('aria-label','LFO 波形预置');
   for(const option of $('#lfoShape').options){const button=document.createElement('button');button.dataset.shape=option.value;button.title=option.text;button.setAttribute('aria-label',option.text+'波形');button.innerHTML=`<svg viewBox="0 0 28 24" aria-hidden="true"><path d="${wavePaths[option.value]}"/></svg>`;button.onclick=()=>{$('#lfoShape').value=option.value;$('#lfoShape').onchange({target:$('#lfoShape')});if(option.value==='custom')showSettings();};presetBar.append(button);}
-  
+
   const orderBar=document.createElement('div');orderBar.className='arpDirections';orderBar.setAttribute('aria-label','琶音顺序');
   for(const [value,icon,name] of [['up','↗','上行'],['down','↘','下行'],['bounce','↗↘','往返'],['random','⤨','随机']]){const button=document.createElement('button');button.dataset.order=value;button.textContent=icon;button.title=name;button.setAttribute('aria-label',name+'琶音');button.onclick=()=>{$('#arpOrder').value=value;$('#arpOrder').onchange({target:$('#arpOrder')});};orderBar.append(button);}
-  
+
   quick.innerHTML='<button id="quickPower" aria-label="开关当前调制" title="开关" aria-pressed="false">⏻</button><button id="quickSlot" aria-label="切换 LFO 编号" title="切换 LFO 1 / 2">1</button><button id="quickSettings" aria-label="展开调制设置" title="详细设置" aria-expanded="false">⋯</button>';
   quick.insertBefore(presetBar,$('#quickSettings'));quick.insertBefore(orderBar,$('#quickSettings'));
   $('#quickPower').onclick=()=>{checkpoint();const target=activeTab==='lfo'?lfo():current().mod.arp;target.enabled=!target.enabled;changed();};
