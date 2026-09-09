@@ -9,8 +9,8 @@ export function startVisuals(engine){
  const $=s=>document.querySelector(s),canvas=$('#visual'),ctx=canvas.getContext('2d');
  const buffer=document.createElement('canvas');buffer.width=200;buffer.height=150;const g=buffer.getContext('2d',{willReadFrequently:true});
  let prefs={palette:'paper',scene:'random',sensitivity:1.4};
- try{const p=JSON.parse(localStorage.getItem('loopfield-visuals-v1'));if(p){if(palettes[p.palette])prefs.palette=p.palette;if(['store','atlas','globe','random'].includes(p.scene))prefs.scene=p.scene;if(p.sensitivity>=.5&&p.sensitivity<=3)prefs.sensitivity=p.sensitivity;}}catch{}
- const names=['store','atlas','globe'],images={};let ready=false;
+ try{const p=JSON.parse(localStorage.getItem('loopfield-visuals-v1'));if(p){if(palettes[p.palette])prefs.palette=p.palette;if(['store','atlas','globe','interface','random'].includes(p.scene))prefs.scene=p.scene;if(p.sensitivity>=.5&&p.sensitivity<=3)prefs.sensitivity=p.sensitivity;}}catch{}
+ const names=['store','atlas','globe','interface'],images={};let ready=false;
  Promise.all(names.map(name=>new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>{images[name]=img;resolve();};img.onerror=reject;img.src=new URL('./assets/scenes/'+name+'.png',import.meta.url).href;}))).then(()=>ready=true).catch(()=>{canvas.setAttribute('aria-label','场景素材加载失败，请刷新');});
  function settings(){palettes[prefs.palette].forEach((v,i)=>document.documentElement.style.setProperty('--'+['paper','ink','muted','line','accent','screen','light','shade'][i],v));$('#palette').value=prefs.palette;$('#scene').value=prefs.scene;$('#sensitivity').value=prefs.sensitivity;}
  function save(){settings();localStorage.setItem('loopfield-visuals-v1',JSON.stringify({...prefs,slideshowVersion:3}));}
@@ -20,6 +20,12 @@ export function startVisuals(engine){
  let rms=0,low=0;if(engine.bus){engine.bus.analyser.getByteFrequencyData(fft);engine.bus.analyser.getFloatTimeDomainData(wave);for(const v of wave)rms+=v*v;for(let i=1;i<20;i++)low+=fft[i]/255/19;rms=Math.sqrt(rms/wave.length);}energy=energy*.65+rms*.35;bass=bass*.7+low*prefs.sensitivity*.3;
  $('#level').style.width=Math.min(100,energy*500)+'%';$('#db').textContent=energy>.0001?Math.round(20*Math.log10(energy))+' dB':'−∞ dB';$('#liveDot').classList.toggle('active',energy>.0005);
  if(!ready)return;const scene=prefs.scene==='random'?names[Math.floor((now-sceneStart)/30000)%3]:prefs.scene;canvas.dataset.scene=scene;
+ if(scene==='interface'){
+ ctx.imageSmoothingEnabled=true;ctx.drawImage(images.interface,0,0,canvas.width,canvas.height);
+ ctx.save();ctx.scale(canvas.width/1448,canvas.height/1086);ctx.beginPath();ctx.rect(1025,603,207,147);ctx.clip();ctx.strokeStyle='#f1f4e9';ctx.lineWidth=2;ctx.beginPath();
+ for(let x=0;x<200;x++){const y=675+Math.sin(x*.08-time*3)*(5+Math.min(40,energy*prefs.sensitivity*180))+Math.sin(x*.21+time)*bass*8;if(x===0)ctx.moveTo(1028+x,y);else ctx.lineTo(1028+x,y);}ctx.stroke();
+ if(Math.floor(time*2)%2===0){ctx.fillStyle='#f1f4e9';ctx.fillRect(1036,725,9,2);}ctx.restore();return;
+ }
  g.fillStyle='#000';g.fillRect(0,0,200,150);g.imageSmoothingEnabled=false;
  const dx=Math.round(3*Math.sin(time*.3)),dy=Math.round(2*Math.sin(time*.6));
  if(scene==='store')g.drawImage(images.store,0,0,200,150);
