@@ -11,7 +11,7 @@ export function startVisuals(engine){
  let prefs={palette:'paper',scene:'random',sensitivity:1.4};
  try{const p=JSON.parse(localStorage.getItem('loopfield-visuals-v1'));if(p){if(palettes[p.palette])prefs.palette=p.palette;if(['store','atlas','globe','interface','random'].includes(p.scene))prefs.scene=p.scene;if(p.sensitivity>=.5&&p.sensitivity<=3)prefs.sensitivity=p.sensitivity;}}catch{}
  const names=['store','atlas','globe','interface'],images={};let ready=false;
- Promise.all(names.map(name=>new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>{images[name]=img;resolve();};img.onerror=reject;img.src=new URL('./assets/scenes/'+name+'.png',import.meta.url).href;}))).then(()=>ready=true).catch(()=>{canvas.setAttribute('aria-label','场景素材加载失败，请刷新');});
+ Promise.all(names.map(name=>new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>{images[name]=img;resolve();};img.onerror=reject;img.src=new URL('./assets/scenes/'+(name==='interface'?'interface-color':name)+'.png',import.meta.url).href;}))).then(()=>ready=true).catch(()=>{canvas.setAttribute('aria-label','场景素材加载失败，请刷新');});
  function settings(){palettes[prefs.palette].forEach((v,i)=>document.documentElement.style.setProperty('--'+['paper','ink','muted','line','accent','screen','light','shade'][i],v));$('#palette').value=prefs.palette;$('#scene').value=prefs.scene;$('#sensitivity').value=prefs.sensitivity;}
  function save(){settings();localStorage.setItem('loopfield-visuals-v1',JSON.stringify({...prefs,slideshowVersion:3}));}
  let sceneStart=performance.now();$('#palette').onchange=e=>{prefs.palette=e.target.value;save();};$('#scene').onchange=e=>{prefs.scene=e.target.value;sceneStart=performance.now();save();};$('#sensitivity').oninput=e=>{prefs.sensitivity=+e.target.value;save();};settings();
@@ -21,10 +21,23 @@ export function startVisuals(engine){
  $('#level').style.width=Math.min(100,energy*500)+'%';$('#db').textContent=energy>.0001?Math.round(20*Math.log10(energy))+' dB':'−∞ dB';$('#liveDot').classList.toggle('active',energy>.0005);
  if(!ready)return;const scene=prefs.scene==='random'?names[Math.floor((now-sceneStart)/30000)%3]:prefs.scene;canvas.dataset.scene=scene;
  if(scene==='interface'){
- ctx.imageSmoothingEnabled=true;ctx.drawImage(images.interface,0,0,canvas.width,canvas.height);
- ctx.save();ctx.scale(canvas.width/1448,canvas.height/1086);ctx.beginPath();ctx.rect(1025,603,207,147);ctx.clip();ctx.strokeStyle='#f1f4e9';ctx.lineWidth=2;ctx.beginPath();
- for(let x=0;x<200;x++){const y=675+Math.sin(x*.08-time*3)*(5+Math.min(40,energy*prefs.sensitivity*180))+Math.sin(x*.21+time)*bass*8;if(x===0)ctx.moveTo(1028+x,y);else ctx.lineTo(1028+x,y);}ctx.stroke();
- if(Math.floor(time*2)%2===0){ctx.fillStyle='#f1f4e9';ctx.fillRect(1036,725,9,2);}ctx.restore();return;
+ ctx.imageSmoothingEnabled=false;ctx.drawImage(images.interface,0,0,canvas.width,canvas.height);
+ ctx.save();ctx.scale(canvas.width/362,canvas.height/271.5);
+ const ink=['#ffc050','#91edb1','#83e3ed','#ed9384','#b49bea'],pulse=Math.min(1,energy*prefs.sensitivity*12);
+ // Animated CRT stays clipped inside the illustrated glass.
+ ctx.save();ctx.beginPath();ctx.rect(256,150,52,39);ctx.clip();
+ ctx.fillStyle='#83e3ed';for(let x=0;x<49;x++){const y=Math.round(168+Math.sin(x*.2-time*3)*(2+pulse*10)+Math.sin(x*.5+time)*bass*2);ctx.fillRect(257+x,y,1,1);}
+ for(let k=0;k<9;k++){const h=Math.round(2+Math.abs(Math.sin(time*2+k))*(2+pulse*7));ctx.fillStyle=ink[k%5];ctx.fillRect(259+k*5,186-h,3,h);}
+ if(Math.floor(time*2)%2===0)ctx.fillRect(258,152,2,1);ctx.restore();
+ // Finger markers light in a walking pattern, with extra brightness on transients.
+ const fingers=[[123,52],[132,47],[143,45],[153,47],[208,48],[218,45],[229,47],[238,53]];
+ const active=Math.floor(time*(1+pulse*3))%8;
+ fingers.forEach(([x,y],i)=>{ctx.globalAlpha=i===active?1:.15+pulse*.5;ctx.fillStyle=ink[i%5];ctx.fillRect(x-1,y-1,3,3);});ctx.globalAlpha=1;
+ const tool=Math.floor(time*.8)%14;ctx.strokeStyle=ink[tool%5];ctx.lineWidth=1;ctx.strokeRect(20+(tool%2)*19,16+Math.floor(tool/2)*16,16,13);
+ // A rotating wire object in the empty space beside the stylus diagram.
+ const spin=time*.8,points=Array.from({length:4},(_,i)=>[241+Math.cos(spin+i*Math.PI/2)*8,120+Math.sin(spin+i*Math.PI/2)*3]);ctx.strokeStyle='#91edb1';ctx.beginPath();points.forEach(([x,y],i)=>{ctx.moveTo(Math.round(x),Math.round(y));ctx.lineTo(Math.round(points[(i+1)%4][0]),Math.round(points[(i+1)%4][1]));ctx.moveTo(Math.round(x),Math.round(y));ctx.lineTo(241,109);});ctx.stroke();
+ ctx.fillStyle='#ffc050';ctx.fillRect(302,27+Math.floor((Math.sin(time*2)+1)*6),2,2);ctx.fillStyle='#83e3ed';ctx.fillRect(292+Math.floor((Math.sin(time*1.7)+1)*19),91,2,2);
+ const key=Math.floor(time*4)%12;ctx.fillStyle=ink[key%5];ctx.globalAlpha=.4+pulse*.6;ctx.fillRect(219+key*6,226,4,2);ctx.globalAlpha=1;ctx.restore();return;
  }
  g.fillStyle='#000';g.fillRect(0,0,200,150);g.imageSmoothingEnabled=false;
  const dx=Math.round(3*Math.sin(time*.3)),dy=Math.round(2*Math.sin(time*.6));
