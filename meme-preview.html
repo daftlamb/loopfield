@@ -1,5 +1,0 @@
-<!doctype html><meta charset="utf-8"><title>Meme scenes preview</title><style>body{background:#eee;display:flex;flex-wrap:wrap}canvas{width:384px;height:288px;border:1px solid #aaa}</style><script type="module">
-import {drawMeme,memeCaptions} from './memes.js';
-const contexts=Object.keys(memeCaptions).map(scene=>{const c=document.createElement('canvas');c.width=576;c.height=432;c.setAttribute('aria-label',scene);document.body.append(c);return [scene,c.getContext('2d')];});
-function draw(now){for(const [scene,ctx] of contexts){ctx.fillStyle='#f5f3ed';ctx.fillRect(0,0,576,432);ctx.font='14px monospace';ctx.textAlign='center';const put=(x,y,ch,tone=1)=>{ctx.fillStyle=tone===3?'#ba4685':tone===2?'#89928d':'#263e3b';ctx.fillText(ch,Math.round(x)*9+4,Math.round(y)*12+30);};const text=(x,y,s,tone)=>[...s].forEach((ch,i)=>{if(ch!==' ')put(x+i,y,ch,tone);});drawMeme(scene,now/1000,.25,text,put);}requestAnimationFrame(draw);}requestAnimationFrame(draw);
-</script>
