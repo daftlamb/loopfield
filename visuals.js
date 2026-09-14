@@ -5,18 +5,19 @@ const palettes={
   midnight:['#161e32','#b3c7e5','#8394b5','#354460','#ee88b7','#0b1223','#91c7e3','#293c57'],
   ink:['#ededeb','#242624','#6c706c','#bbbebb','#616861','#171917','#e4e6df','#424742']
 };
-export function startVisuals(engine){
+export function startVisuals(engine,{isVisible=()=>!document.hidden}={}){
  const $=s=>document.querySelector(s),canvas=$('#visual'),ctx=canvas.getContext('2d');
  const buffer=document.createElement('canvas');buffer.width=200;buffer.height=150;const g=buffer.getContext('2d',{willReadFrequently:true});
- let prefs={palette:'paper',scene:'random',sensitivity:1.4};
+ let prefs={palette:document.documentElement.classList.contains('mobile-shell')?'ink':'paper',scene:'random',sensitivity:1.4};
  try{const p=JSON.parse(localStorage.getItem('loopfield-visuals-v1'));if(p){if(palettes[p.palette])prefs.palette=p.palette;if(['store','atlas','globe','interface','random'].includes(p.scene))prefs.scene=p.scene;if(p.sensitivity>=.5&&p.sensitivity<=3)prefs.sensitivity=p.sensitivity;}}catch{}
  const names=['store','atlas','globe','interface'],images={};let ready=false;
  Promise.all(names.map(name=>new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>{images[name]=img;resolve();};img.onerror=reject;img.src=new URL('./assets/scenes/'+(name==='interface'?'interface-color':name)+'.png',import.meta.url).href;}))).then(()=>ready=true).catch(()=>{canvas.setAttribute('aria-label','场景素材加载失败，请刷新');});
  function settings(){palettes[prefs.palette].forEach((v,i)=>document.documentElement.style.setProperty('--'+['paper','ink','muted','line','accent','screen','light','shade'][i],v));$('#palette').value=prefs.palette;$('#scene').value=prefs.scene;$('#sensitivity').value=prefs.sensitivity;}
- function save(){settings();localStorage.setItem('loopfield-visuals-v1',JSON.stringify({...prefs,slideshowVersion:3}));}
+ function save(){settings();try{localStorage.setItem('loopfield-visuals-v1',JSON.stringify({...prefs,slideshowVersion:3}));}catch{}}
  let sceneStart=performance.now();$('#palette').onchange=e=>{prefs.palette=e.target.value;save();};$('#scene').onchange=e=>{prefs.scene=e.target.value;sceneStart=performance.now();save();};$('#sensitivity').oninput=e=>{prefs.sensitivity=+e.target.value;save();};settings();
  const fft=new Uint8Array(512),wave=new Float32Array(1024);let last=0,time=0,energy=0,bass=0;
- function draw(now){requestAnimationFrame(draw);engine.tick();if(now-last<66)return;const dt=last?Math.min(.2,(now-last)/1000):0;last=now;time+=dt;
+ let disposed=false;let frame;
+ function draw(now){if(disposed)return;frame=requestAnimationFrame(draw);if(!isVisible()){last=0;return;}if(now-last<66)return;const dt=last?Math.min(.2,(now-last)/1000):0;last=now;time+=dt;
  let rms=0,low=0;if(engine.bus){engine.bus.analyser.getByteFrequencyData(fft);engine.bus.analyser.getFloatTimeDomainData(wave);for(const v of wave)rms+=v*v;for(let i=1;i<20;i++)low+=fft[i]/255/19;rms=Math.sqrt(rms/wave.length);}energy=energy*.65+rms*.35;bass=bass*.7+low*prefs.sensitivity*.3;
  $('#level').style.width=Math.min(100,energy*500)+'%';$('#db').textContent=energy>.0001?Math.round(20*Math.log10(energy))+' dB':'−∞ dB';$('#liveDot').classList.toggle('active',energy>.0005);
  if(!ready)return;const scene=prefs.scene==='random'?names[Math.floor((now-sceneStart)/30000)%3]:prefs.scene;canvas.dataset.scene=scene;
@@ -57,5 +58,6 @@ export function startVisuals(engine){
  if(scene==='atlas'){g.fillStyle='#edb878';for(let k=0;k<8;k++){if((k+Math.floor(time*2))%4===0)g.fillRect(58+k*7%18+dx,53+k*11%20+dy,1+Math.round(Math.min(1,bass)),1);}}
  ctx.imageSmoothingEnabled=false;ctx.drawImage(buffer,0,0,canvas.width,canvas.height);
  }
- requestAnimationFrame(draw);
+ frame=requestAnimationFrame(draw);
+ return {dispose(){disposed=true;cancelAnimationFrame(frame);}};
 }

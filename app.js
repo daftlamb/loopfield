@@ -22,7 +22,7 @@ const engine=new Engine(()=>project,({step,hits,pattern,song,ended})=>{
   trackButtons.forEach((b,i)=>b.classList.toggle('hit',hits.includes(i)));
 });
 function toast(text){$('#toast').textContent=text;$('#toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('#toast').classList.remove('show'),2600);}
-function save(){clearTimeout(saveTimer);saveTimer=setTimeout(()=>{try{localStorage.setItem(key,JSON.stringify(project));$('#saveState').textContent='已保存到本机';}catch{$('#saveState').textContent='请导出项目保存';}},150);}
+function save(){window.dispatchEvent(new Event('loopfield-project-changed'));clearTimeout(saveTimer);saveTimer=setTimeout(()=>{try{localStorage.setItem(key,JSON.stringify(project));$('#saveState').textContent='已保存到本机';}catch{$('#saveState').textContent='请导出项目保存';}},150);}
 let previewWarning=false;
 function previewEditedNote(){engine.previewNote(current(),current().steps[selected]).catch(()=>{if(!previewWarning){toast('请先点一次试听音色，开启音符预览');previewWarning=true;}});}
 function checkpoint(){history.push(clone(project));if(history.length>30)history.shift();$('#undo').disabled=false;}
@@ -98,7 +98,7 @@ const specs=[['volume','LEVEL','音轨音量',0,1,0.01,v=>Math.round(v*100)],['a
 const paramControls=specs.map(([k,title,hint,min,max,step,fmt])=>{const label=document.createElement('label');label.className='param';label.innerHTML=`<div><span>${title}</span><output></output></div><input aria-label="${hint}" type="range" min="${min}" max="${max}" step="${step}"><div class="hint">${hint}</div>`;const input=label.querySelector('input');input.addEventListener('pointerdown',checkpoint);input.addEventListener('keydown',e=>{if(e.key.startsWith('Arrow'))checkpoint();});input.oninput=()=>{current()[k]=Number(input.value);label.querySelector('output').textContent=fmt(current()[k]);save();};$('#parameters').append(label);return {label,input,k,fmt};});
 function renderGrid(){renderStepPage();const t=current();gridButtons.forEach((b,i)=>{const s=t.steps[i];b.classList.toggle('off',!s.on);b.classList.toggle('selected',selected===i);b.setAttribute('aria-pressed',String(s.on));b.setAttribute('aria-label',`第 ${i+1} 步 ${s.on?noteName(s.note):'关闭'}`);b.querySelector('.value').textContent=s.on?(mode==='note'?noteName(s.note):mode==='ratchet'?'×'+s.ratchet:mode==='gate'?(s.gate?s.gate+'%':'AUTO'):Math.round(s[mode]*100)+(mode==='probability'?'%':'')):'·';b.querySelector('.glyph').style.height=(mode==='note'?9:mode==='ratchet'?s.ratchet*3:mode==='gate'?Math.max(2,s.gate/400*25):Math.max(2,s[mode]*25))+'px';});}
 function renderStep(){const s=current().steps[selected];$('#gate').value=s.gate;$('#gateValue').textContent=s.gate?s.gate+'%':'AUTO';$('#mobileStep').textContent='STEP '+String(selected+1).padStart(2,'0');$('#ratchet').value=s.ratchet;$('#ratchetValue').textContent='×'+s.ratchet;$('#stepLabel').textContent=`STEP ${String(selected+1).padStart(2,'0')}`;$('#note').value=s.note;$('#velocity').value=Math.round(s.velocity*100);$('#probability').value=Math.round(s.probability*100);$('#velocityValue').textContent=Math.round(s.velocity*100);$('#probabilityValue').textContent=Math.round(s.probability*100)+'%';}
-function renderEditor(){modUI?.render();renderPatterns();const t=current();$('#mobileTrack').value=track;soloButtons.forEach((b,i)=>{const on=project.patterns[project.pattern][i].solo;b.classList.toggle('active',on);b.setAttribute('aria-pressed',String(on));});renderGrid();renderStep();trackButtons.forEach((b,i)=>{const tt=project.patterns[project.pattern][i];b.querySelector('span').textContent=tt.name;b.classList.toggle('active',i===track);b.classList.toggle('muted',tt.mute);b.classList.toggle('soloed',tt.solo);b.setAttribute('aria-label',`音轨 ${i+1} ${tt.name}`);b.setAttribute('aria-pressed',String(i===track));});[...$('#patterns').children].forEach((b,i)=>b.classList.toggle('active',i===project.pattern));$('#soundName').textContent=`0${track+1} · ${t.name}`;$('#kind').value=t.kind;for(const k of ['mute','solo']){$('#'+k).classList.toggle('active',t[k]);$('#'+k).setAttribute('aria-pressed',String(t[k]));}
+function renderEditor(){window.dispatchEvent(new Event('loopfield-editor-changed'));modUI?.render();renderPatterns();const t=current();$('#mobileTrack').value=track;soloButtons.forEach((b,i)=>{const on=project.patterns[project.pattern][i].solo;b.classList.toggle('active',on);b.setAttribute('aria-pressed',String(on));});renderGrid();renderStep();trackButtons.forEach((b,i)=>{const tt=project.patterns[project.pattern][i];b.querySelector('span').textContent=tt.name;b.classList.toggle('active',i===track);b.classList.toggle('muted',tt.mute);b.classList.toggle('soloed',tt.solo);b.setAttribute('aria-label',`音轨 ${i+1} ${tt.name}`);b.setAttribute('aria-pressed',String(i===track));});[...$('#patterns').children].forEach((b,i)=>b.classList.toggle('active',i===project.pattern));$('#soundName').textContent=`0${track+1} · ${t.name}`;$('#kind').value=t.kind;for(const k of ['mute','solo']){$('#'+k).classList.toggle('active',t[k]);$('#'+k).setAttribute('aria-pressed',String(t[k]));}
   const drum=['kick','snare','hat','noise'].includes(t.kind);
   paramControls.forEach(({label,input,k,fmt})=>{input.value=t[k];label.querySelector('output').textContent=fmt(t[k]);input.disabled=(drum&&['attack','fm','ratio'].includes(k))||(['snare','hat'].includes(t.kind)&&k==='cutoff');label.classList.toggle('disabled',input.disabled);});
 }
@@ -125,8 +125,8 @@ $('#kind').onchange=()=>{checkpoint();current().kind=$('#kind').value;renderEdit
 for(const k of ['mute','solo'])$('#'+k).onclick=()=>{checkpoint();if(k==='solo')toggleSolo(project.patterns[project.pattern],track);else current().mute=!current().mute;renderEditor();save();};
 $('#audition').onclick=async()=>{try{await engine.preview(current(),{...current().steps[selected],velocity:0.8});}catch{toast('音频启动失败，请重新点按试听');}};
 async function stop(){await engine.stop();renderPatterns();renderSong();$('#songStatus').textContent='READY';$('#play').innerHTML=icon('play');$('#play').setAttribute('aria-label','播放');$('#play').classList.remove('playing');$('#transportState').textContent='READY TO PLAY';$('#position').textContent='— / 32';gridButtons.forEach(b=>b.classList.remove('current'));trackButtons.forEach(b=>b.classList.remove('hit'));}
-$('#play').onclick=async()=>{if(transportBusy)return;transportBusy=true;try{if(engine.playing)await stop();else{await engine.start();renderPatterns();renderSong();$('#play').innerHTML=icon('stop');$('#play').setAttribute('aria-label','停止');$('#play').classList.add('playing');$('#transportState').textContent='LOOP IS RUNNING';}}catch{toast('音频无法启动，请再点一次播放');}finally{transportBusy=false;}};
-$('#projectName').onchange=()=>{project.name=$('#projectName').value.trim()||'Untitled sketch';save();};
+$('#play').onclick=async()=>{if(transportBusy)return;transportBusy=true;try{if(engine.playing)await stop();else{await engine.start();renderPatterns();renderSong();$('#play').innerHTML=icon('stop');$('#play').setAttribute('aria-label','停止');$('#play').classList.add('playing');$('#transportState').textContent='LOOP IS RUNNING';}}catch(error){if(error.name!=='AbortError')toast('音频无法启动，请再点一次播放');}finally{transportBusy=false;}};
+$('#projectName').oninput=()=>{project.name=$('#projectName').value.trim()||'Untitled sketch';save();};
 $('#bpm').onchange=()=>{project.bpm=Math.min(220,Math.max(40,Number($('#bpm').value)||96));$('#bpm').value=project.bpm;renderSong();save();};
 $('#swing').oninput=()=>{project.swing=Number($('#swing').value);$('#swingValue').textContent=project.swing+'%';save();};
 $('#master').oninput=()=>{project.master=Number($('#master').value)/100;engine.setMaster(project.master);save();};
@@ -138,12 +138,16 @@ $('#save').onclick=()=>download(new Blob([JSON.stringify(project,null,2)],{type:
 $('#load').onclick=()=>$('#file').click();
 $('#file').onchange=async()=>{const file=$('#file').files[0];if(!file)return;try{if(file.size>2000000)throw Error('项目文件过大');const loaded=validateProject(JSON.parse(await file.text()));await stop();checkpoint();project=loaded;renderProject();save();toast('项目已打开');}catch(e){toast('无法打开：'+e.message);}finally{$('#file').value='';}};
 $('#export').onclick=async()=>{const button=$('#export');button.disabled=true;button.textContent='正在渲染声音…';try{const wav=await renderWav(clone(project),$('#exportMode').value);download(wav,`loopfield-${$('#exportMode').value==='song'?'song':patternName(project.pattern)}.wav`);toast('已导出 WAV，包含 FX 尾音');}catch{toast('导出失败，请使用新版 Chrome 或 Edge');}finally{button.disabled=false;button.innerHTML=icon('download')+'导出 WAV';}};
-document.addEventListener('keydown',e=>{if(/INPUT|SELECT|TEXTAREA/.test(e.target.tagName)||e.ctrlKey||e.metaKey||e.altKey)return;if(e.code==='Space'){e.preventDefault();$('#play').click();}else if(/^[1-8]$/.test(e.key)){track=Number(e.key)-1;renderEditor();}else if(['ArrowUp','ArrowDown'].includes(e.key)){e.preventDefault();checkpoint();const s=current().steps[selected];s.note=Math.max(24,Math.min(96,s.note+(e.key==='ArrowUp'?1:-1)));renderStep();renderGrid();save();previewEditedNote();}});
+document.addEventListener('keydown',e=>{if(e.target.closest('dialog[open]')||/INPUT|SELECT|TEXTAREA/.test(e.target.tagName)||e.ctrlKey||e.metaKey||e.altKey)return;if(e.code==='Space'){e.preventDefault();$('#play').click();}else if(/^[1-8]$/.test(e.key)){track=Number(e.key)-1;renderEditor();}else if(['ArrowUp','ArrowDown'].includes(e.key)){e.preventDefault();checkpoint();const s=current().steps[selected];s.note=Math.max(24,Math.min(96,s.note+(e.key==='ArrowUp'?1:-1)));renderStep();renderGrid();save();previewEditedNote();}});
 for(const [id,name,label] of [['play','play',''],['save','save','保存项目'],['load','upload','打开'],['allReset','trash','全部清空'],['newPattern','plus','空白'],['copyPattern','copy','复制'],['openTools','sliders','OCT / 调式'],['closeTools','close','关闭'],['random','shuffle',randomLabels[mode]],['clear','trash','清空轨道'],['undo','undo','撤销'],['octDown','minus','OCT'],['octUp','plus','OCT'],['applyScale','music','转换调式'],['mute','volume-x','MUTE'],['solo','headphone','SOLO'],['audition','headphone','试听音色'],['export','download','导出 WAV'],['addSongRow','plus','添加乐段']]){$('#'+id).innerHTML=icon(name)+label;$('#'+id).classList.add('iconButton');}
 for(const [tab,name] of [['sequence','grid-3x3'],['song','bulletlist'],['sound','music'],['fx','sliders'],['visual','image'],['project','file']])document.querySelector(`.mobileNav [data-tab="${tab}"] span`).innerHTML=icon(name);
 setupMidi(engine);
-modUI=setupModUI({current,checkpoint,save});renderProject();startVisuals(engine);
-const mobileQuery=matchMedia('(max-width:760px)');function placeActions(){const parent=mobileQuery.matches?$('#mobileActions'):$('.gridtools');for(const id of ['random','clear'])parent.append($('#'+id));(mobileQuery.matches?$('.patternBar'):$('.gridtools')).append($('#undo'));}placeActions();mobileQuery.addEventListener('change',placeActions);
+modUI=setupModUI({current,checkpoint,save});renderProject();
+const visuals=startVisuals(engine,{isVisible:()=>!document.hidden&&(!document.documentElement.classList.contains('mobile-shell')||document.body.dataset.mobileTab==='visual')});
+// Transport/UI time belongs to the instrument, independent of the replaceable visual renderer.
+function transportFrame(){engine.tick();requestAnimationFrame(transportFrame);}
+requestAnimationFrame(transportFrame);
+const mobileQuery=matchMedia('(max-width:760px)');function placeActions(){const parent=(mobileQuery.matches||document.documentElement.classList.contains('mobile-shell'))?$('#mobileActions'):$('.gridtools');for(const id of ['random','clear'])parent.append($('#'+id));((mobileQuery.matches||document.documentElement.classList.contains('mobile-shell'))?$('.patternBar'):$('.gridtools')).append($('#undo'));}placeActions();mobileQuery.addEventListener('change',placeActions);
 
 function convertNotes(options){checkpoint();const tracks=$('#pitchScope').value==='track'?[current()]:project.patterns[project.pattern];transformNotes(tracks,options);renderEditor();save();toast('已转换音符 · 鼓轨保持原样 · 可撤销');}
 $('#octDown').setAttribute('aria-label','降低八度');
@@ -170,3 +174,23 @@ $('#confirmReset').onclick=async()=>{
   try{await stop();checkpoint();project=makeEmptyProject();track=0;selected=0;stepPage=0;$('#fxTarget').value='master';renderProject();save();$('#resetDialog').close();toast('已全部清空 · 可在工具中撤销');}
   finally{button.disabled=false;}
 };
+
+// Small host API for the offline iOS shell. The web page continues to work independently.
+export function getProject(){return clone(project);}
+export function getTrack(){return {index:track,...clone(current())};}
+export function editTrackParameter(key,value){
+  const spec=specs.find(s=>s[0]===key);if(!spec||!Number.isFinite(value))return;
+  current()[key]=Math.max(spec[3],Math.min(spec[4],value));renderEditor();save();
+}
+export function beginEdit(){checkpoint();}
+export async function openProject(data){
+  const loaded=validateProject(clone(data));await stop();checkpoint();project=loaded;track=0;selected=0;stepPage=0;renderProject();save();
+}
+export async function pauseForBackground(){await stop();}
+export function setMobileTab(tab){
+  if(!['sequence','sound','fx','song','visual','project'].includes(tab))return;
+  document.body.dataset.mobileTab=tab;
+  document.querySelectorAll('.mobileNav [data-tab]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.tab===tab)));
+  window.dispatchEvent(new Event('loopfield-tab-changed'));
+}
+export {renderWav,toast,visuals};

@@ -70,11 +70,12 @@ export class Engine{
     if(navigator.audioSession)navigator.audioSession.type='playback';
     if(!this.ctx)this.ctx=new AudioContext({latencyHint:'interactive'});
     // Resume in the tap handler before constructing the effects graph on iPhone.
-    await this.ctx.resume();
+    const context=this.ctx;await context.resume();
+    if(this.ctx!==context)throw new DOMException('Audio start cancelled','AbortError');
     if(this.ctx.state!=='running')throw new Error('Audio context is not running');
     if(!this.bus)this.bus=createBus(this.ctx,this.getProject().master,this.getProject().fx,this.getProject().trackFx);
   }
-  async start(){await this.init();if(this.playing)return;this.playing=true;this.nextTime=this.ctx.currentTime+0.015;this.nextStep=0;this.queue=[];this.songPosition=0;this.bus.tracks.forEach(bus=>bus.origin=this.nextTime);this.activePattern=this.getProject().pattern;this.pendingPattern=null;this.ended=false;
+  async start(){const generation=this.generation??0;await this.init();if(generation!==(this.generation??0))throw new DOMException('Audio start cancelled','AbortError');if(this.playing)return;this.playing=true;this.nextTime=this.ctx.currentTime+0.015;this.nextStep=0;this.queue=[];this.songPosition=0;this.bus.tracks.forEach(bus=>bus.origin=this.nextTime);this.activePattern=this.getProject().pattern;this.pendingPattern=null;this.ended=false;
     this.worker=new Worker(new URL('./clock.js',import.meta.url));this.worker.onmessage=()=>this.schedule();this.schedule();}
   schedule(){if(this.ctx)this.midi?.flush(this.ctx);if(!this.playing||this.ended)return;const p=this.getProject();if(this.nextTime<this.ctx.currentTime-0.1)this.nextTime=this.ctx.currentTime+0.03;
     while(this.nextTime<this.ctx.currentTime+0.12){
@@ -95,7 +96,7 @@ export class Engine{
   }
   queuePattern(index){this.pendingPattern=index;}
   tick(){if(!this.ctx)return;this.midi?.flush(this.ctx);let last;while(this.queue.length&&this.queue[0].time<=this.ctx.currentTime)last=this.queue.shift();if(last)this.onStep(last);}
-  async stop(){this.previewToken=(this.previewToken??0)+1;this.midi?.panic();this.previewVoice=null;this.playing=false;this.worker?.terminate();this.queue=[];if(this.ctx){await this.ctx.close();this.ctx=null;this.bus=null;}}
+  async stop(){this.generation=(this.generation??0)+1;this.previewToken=(this.previewToken??0)+1;this.midi?.panic();this.previewVoice=null;this.playing=false;this.worker?.terminate();this.queue=[];if(this.ctx){const closing=this.ctx;this.ctx=null;this.bus=null;await closing.close();}}
   async preview(t,s){await this.init();const p=this.getProject(),i=p.patterns[p.pattern].indexOf(t),bus=this.bus.tracks[i]??this.bus,start=this.ctx.currentTime+.01,duration=60/p.bpm/4;playStep(this.ctx,bus,t,s,start,duration,p.bpm);modulateStep(bus,t,p.trackFx[i],start,Math.max(duration*4,t.attack+t.decay),p.bpm);}
   async previewNote(track,step){
     const token=this.previewToken=(this.previewToken??0)+1,p=this.getProject(),i=p.patterns[p.pattern].indexOf(track);

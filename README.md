@@ -57,3 +57,7 @@ ASCII 动画精修源工程见 `art/`：小鸟、摇摆猫、雨景均通过 ASC
 停止、切换设备或通道会释放已发送的音符；「关音」立即清除待发送消息并释放使用中的通道。DAW 需选择对应的 MIDI 输入或自行配置虚拟 MIDI 端口。功能需要支持 Web MIDI 的浏览器；不支持时界面会提示。每次打开页面需主动连接设备，不申请 SysEx 权限。
 
 `midi.test.mjs` 验证事件时序、通道与关音；`/preview-midi-test.html` 验证实际 Web Audio 预览音高及 MIDI 消息。外部设备声音仍需接入硬件实测。
+
+## iOS 原型
+
+新增独立离线 iOS App，详见 [mobile/README.md](mobile/README.md)。`npm run ios:sync` 构建并同步，`npm run ios:open` 打开 Xcode。网站仍使用原来的 `npm run build`。

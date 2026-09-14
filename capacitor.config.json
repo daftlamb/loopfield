@@ -1,0 +1,7 @@
+{
+  "appId": "com.daftlamb.loopfield",
+  "appName": "Loopfield",
+  "webDir": "dist-mobile",
+  "backgroundColor": "#ededeb",
+  "ios": { "contentInset": "never", "allowsLinkPreview": false, "scrollEnabled": false, "backgroundColor": "#ededeb" }
+}

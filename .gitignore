@@ -4,3 +4,6 @@ dist/
 .env*
 .dev.vars*
 *.log
+
+dist-mobile/
+.DS_Store

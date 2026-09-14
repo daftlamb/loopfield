@@ -4,11 +4,24 @@
   "type": "module",
   "scripts": {
     "start": "node server.mjs",
-    "test": "node --test model.test.mjs midi.test.mjs",
+    "test": "node --test model.test.mjs midi.test.mjs mobile/*.test.mjs",
     "build": "node build.mjs",
-    "deploy": "npm run build && npx wrangler pages deploy dist --project-name loopfield --branch main"
+    "deploy": "npm run build && npx wrangler pages deploy dist --project-name loopfield --branch main",
+    "build:mobile": "node mobile/build.mjs",
+    "ios:sync": "npm run build:mobile && cap sync ios",
+    "ios:open": "cap open ios"
   },
   "dependencies": {
+    "@capacitor/app": "^8.1.1",
+    "@capacitor/core": "^8.5.2",
+    "@capacitor/filesystem": "^8.1.3",
+    "@capacitor/ios": "^8.5.2",
+    "@capacitor/preferences": "^8.0.1",
+    "@capacitor/share": "^8.0.1",
     "pixelarticons": "2.4.1"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.5.2",
+    "esbuild": "^0.28.2"
   }
 }

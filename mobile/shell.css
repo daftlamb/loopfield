@@ -1,0 +1,58 @@
+:root{--shell-top:env(safe-area-inset-top,0px);--shell-bottom:env(safe-area-inset-bottom,0px)}
+html,body{height:100%;width:100%;overflow:hidden;overscroll-behavior:none}
+body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-text-size-adjust:100%;padding:0}
+input,textarea{-webkit-user-select:text;user-select:text}
+[hidden]{display:none!important}
+button,input,select{border-radius:0;-webkit-tap-highlight-color:transparent}
+button{touch-action:manipulation}
+header{height:calc(44px + var(--shell-top));padding:var(--shell-top) 16px 0;display:flex;gap:12px;border:0;max-width:none}
+.shellWordmark{font-size:16px;letter-spacing:1px;flex-shrink:0}
+#shellProject{margin-left:auto;min-width:0;min-height:44px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:var(--muted);padding:0 4px}
+#shellHelp{width:40px;min-height:44px;flex-shrink:0;font-size:20px}
+.transport{top:calc(44px + var(--shell-top));height:52px;padding:4px 16px;gap:12px;border-bottom:0}
+.transport .play{width:44px;height:44px}.transportInfo{font-size:12px;min-width:64px}.tempo input{font-size:20px;width:62px}
+.mobileTrackBar{top:calc(96px + var(--shell-top));height:48px;padding:0 16px;border-bottom:1px solid var(--line)}
+#tracks{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));width:100%;gap:3px;margin:0;padding:0}
+#tracks .track{min-height:40px;height:40px;padding:0;display:flex;align-items:center;justify-content:center;border:0}
+#tracks .track b{font-size:16px}#tracks .track span{display:none}.track.hit{box-shadow:inset 0 -3px var(--accent)}
+main{top:calc(144px + var(--shell-top));bottom:calc(56px + var(--shell-bottom));padding:0 16px;max-width:620px;margin:0 auto}
+.mobileNav{height:calc(56px + var(--shell-bottom));grid-template-columns:repeat(5,minmax(0,1fr));padding:2px 10px calc(2px + var(--shell-bottom));border-top:1px solid var(--line)}
+.mobileNav button{min-height:48px;height:50px;font-size:12px}.mobileNav button span .uiIcon{width:20px;height:20px}.mobileNav button[aria-pressed=true]{background:transparent;color:var(--ink);box-shadow:inset 0 2px var(--ink)}
+.sequencePanel .sectionhead{height:38px;min-height:38px}.sequencePanel .sectionhead>span{font-size:11px}.sequencePanel .sectionhead>span small{display:none}
+.sequencePanel #patternSelect{min-height:36px;min-width:60px;text-align:center;border:0;padding:4px}
+.patternBar{position:absolute;right:88px;top:0;height:38px;gap:6px}.patternBar>button{border:0;min-height:36px;min-width:44px;padding:4px;font-size:12px}.patternBar .uiIcon{width:12px}
+.stepPages{height:36px;gap:10px}.stepPages button{height:32px;min-height:32px}.stepPages span{font-size:10px}
+.sequencePanel .grid{gap:8px;padding:8px 1px;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(4,minmax(0,1fr));min-height:128px}
+.sequencePanel .step{border:0;border-bottom:1px solid var(--line);padding:5px 8px;position:relative;display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between}
+.step small{font-size:10px;color:var(--muted)}.step .value{font-size:16px}.step .glyph{width:3px;right:6px;bottom:8px}
+.step.off{border-bottom:1px solid var(--line)}.step.off .value{color:var(--muted)}
+.step.selected{outline:1px solid var(--muted);outline-offset:-1px;background:transparent}
+.step.current{background:var(--ink)!important;color:var(--paper)!important}.step.current small,.step.current .value{color:var(--paper)!important}.step.current .glyph{background:var(--paper)}
+.sequencePanel .gridtools{height:40px;min-height:40px}.sequencePanel .gridtools .tabs{height:40px;grid-template-columns:repeat(7,minmax(0,1fr))}.sequencePanel .gridtools .tabs button{font-size:10px;min-height:40px;padding:0;letter-spacing:0}
+.sequencePanel .stepedit{display:flex;align-items:center;min-height:44px;height:44px;border:0;border-bottom:1px solid var(--line);margin:0;padding:0;gap:0;box-shadow:none}
+.stepedit label{display:flex;align-items:center;width:100%;gap:16px;min-height:44px}.stepedit label input{flex:1;min-width:40px;min-height:40px;width:auto}.stepedit label select{flex:1;max-width:none;min-height:40px}.stepedit output{width:48px;text-align:right}.stepedit .gateControl{grid-column:auto}
+.quickSound{flex:0 0 92px;border-top:0;padding-top:4px}.quickTitle{display:flex;justify-content:space-between;align-items:center;min-height:28px;font-size:11px}.quickTitle button{min-height:28px;font-size:11px;color:var(--muted)}
+#quickParameters{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}#quickParameters label{min-width:0}#quickParameters label>span{display:flex;justify-content:space-between;gap:3px;font-size:10px}#quickParameters output{font-size:10px;color:var(--muted)}#quickParameters input{width:100%;min-height:40px;margin:0}
+.soundPanel .sectionhead{min-height:44px}.soundPanel .soloTracks{display:none}.soundhead{margin-top:4px}.parameters{gap:12px 16px}.param .hint{display:none}.param input{margin:0}.param>div{font-size:12px}
+body[data-mobile-tab=visual] main>.instrument{display:block!important;height:0!important}
+.visualPanel{height:100%;overflow:auto}.visualScreen{background:transparent;border:0;padding:0;box-shadow:none;max-width:100%}.visualScreen canvas{width:100%;height:auto;display:block}.visualFooter,.fieldNote{display:none}
+.sceneSettings{margin:0 0 12px}.sceneSettings label{font-size:11px}.sceneSettings select{font-size:14px}
+#projectDialog,#helpDialog{max-width:520px;max-height:calc(100dvh - var(--shell-top) - var(--shell-bottom) - 32px);overflow:auto;padding:16px;overscroll-behavior:contain}
+#projectDialog .dialogHead,#helpDialog .dialogHead{position:sticky;top:-16px;background:var(--paper);z-index:3;padding:8px 0;border-bottom:1px solid var(--line);margin-bottom:10px;min-height:44px}
+.dialogHead button{font-size:24px;min-width:44px;min-height:44px}
+.shellNote{font-size:12px;color:var(--muted);line-height:1.7;margin:10px 0}
+#projectContent .projectbar{display:flex!important;flex-wrap:wrap;gap:8px;padding:8px 0;margin:0}
+#projectContent .projectbar input:not([hidden]){width:100%;min-height:44px;font-size:16px;border-bottom:1px solid var(--line)}
+#projectContent #saveState{display:block;width:100%;font-size:12px;color:var(--muted);margin:0 0 8px}
+#projectContent .projectbar button{min-height:44px;font-size:12px;padding:8px;border:1px solid var(--line);margin:0;flex:1 0 42%}
+#projectContent #allReset{flex:0 0 100%;border:0;color:var(--muted);text-align:left}
+#projectContent .mobileProjectSettings{display:block}#projectContent .mobileProjectSettings label{margin:8px 0;font-size:12px}
+#projectContent .instrumentFoot{margin:8px 0}.instrumentFoot button{font-size:12px;min-height:44px}.instrumentFoot select{font-size:16px;min-height:44px}
+.libraryHeading{font-size:12px;margin:24px 0 8px}.libraryRow{display:flex;justify-content:space-between;align-items:center;gap:12px;border-bottom:1px solid var(--line);padding:10px 0;font-size:14px}.libraryRow span{overflow-wrap:anywhere;min-width:0}.libraryRow small{display:block;font-size:10px;color:var(--muted);margin-top:6px}.libraryRow button{min-height:44px;min-width:54px;border:1px solid var(--line);flex-shrink:0;font-size:12px}
+#projectMessage{font-size:12px;line-height:1.7}#helpText{font-size:16px;line-height:1.8;margin:12px 0}
+.helpMode [data-help]{outline:1px dashed var(--muted);outline-offset:-2px}#shellHelp[aria-pressed=true]{background:var(--ink);color:var(--paper)}
+#toast{z-index:100;bottom:calc(70px + var(--shell-bottom));max-width:calc(100% - 32px);white-space:normal;overflow-wrap:anywhere;font-size:12px;padding:12px 16px}
+.startupError{position:static;padding:80px 24px;font-family:system-ui;line-height:1.8}
+@media(max-height:740px){.quickSound{flex-basis:76px}.quickTitle{min-height:24px}#quickParameters input{min-height:32px}.sequencePanel .grid{gap:5px;padding:5px 1px}.sequencePanel .step{padding:3px 7px}.step .value{font-size:14px}.step small{font-size:9px}}
+@media(min-width:761px){header,.transport,.mobileTrackBar,.mobileNav{padding-left:max(24px,calc((100% - 600px)/2));padding-right:max(24px,calc((100% - 600px)/2))}.sequencePanel .grid{gap:12px}.sequencePanel .step .value{font-size:22px}.quickSound{flex-basis:112px}#quickParameters label>span,#quickParameters output{font-size:12px}#quickParameters input{min-height:48px}}
+.sequencePanel .step.otherPage{display:none}
