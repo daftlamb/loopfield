@@ -10,7 +10,7 @@ Release archive and App Store Connect distribution-signed IPA exported on 2026-0
 - IPA: `../Loopfield-Releases/1.0-7/IPA/App.ipa`
 - Upload options: `../Loopfield-Releases/1.0-7/ExportOptions.plist`
 - App Store Connect app ID: `6811978571` (created successfully).
-- Current status: **uploaded successfully** on 2026-09-15 at 00:58 CST. Xcode reports `Upload succeeded` and `EXPORT SUCCEEDED`; Apple accepted the package and began processing. TestFlight availability is still pending.
+- Current status: **uploaded successfully** on 2026-09-15 at 00:58 CST. Xcode reports `Upload succeeded` and `EXPORT SUCCEEDED`; Apple accepted the package and began processing. The TestFlight upload table confirms version 1.0 (7) is Processing; testing availability is still pending.
 - Verification: 47 Node tests passed, including Pad/Bass roundtrips and MIDI arpeggios; 16 real OfflineAudioContext render combinations passed (four voices × two ratchet counts × two gates), with finite nonzero output and silent tails. Release archive succeeded and the app was installed/launched on the connected iPhone.
 - Landscape layout and continuous playback verified in WebKit at 852 × 393, with portrait controls restored at 393 × 852. Native orientation code compiles; Simulator stays portrait on sequencer, but automated taps into Visual were not delivered, so the native Visual rotation path still needs a manual phone check.
 
