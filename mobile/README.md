@@ -58,3 +58,7 @@ Capacitor CLI 开发依赖有 3 项 moderate audit 提示；未做破坏性强�
 - 选择新音色时设置适合它的起音、衰减、滤波与 FM 初值，保留音符、音轨音量、声像、静音、调制和 FX。旧工程不会自动换音色；含新音色的 JSON 需要更新后的版本读取。
 - 46 项 Node 测试通过；`voices-test.html` 用实际 OfflineAudioContext 检查音色频谱、衰减、尾音终止、Gate、低/高音、LFO + NORMAL/CHIP ARP 和双音色立体声 WAV，全部通过。
 - 浏览器确认五个底栏按钮均无可见文字、保留名称；Bell / Pluck 选择与试听入口正常，刷新保留已选音色。iOS 开发签名 Build 2 通过并安装启动于已连接 iPhone。
+## Build 3 · Divider cleanup
+
+- 去掉音序标题上方的黑色分隔线和底部导航上方的灰色边框，保留纯图标导航。
+- 浏览器确认两处边框宽度为 0；iOS 开发签名构建通过，已安装到 iPhone。
