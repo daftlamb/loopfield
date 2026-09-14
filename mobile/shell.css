@@ -101,3 +101,5 @@ button,label,.param>div,.quickTitle,.quickTitle button,.sceneSettings label,.son
 #projectContent .instrumentFoot .choiceControl button{width:auto;border:0;padding:0 10px;min-height:44px}
 .stepedit .choiceControl,.stepedit .choiceValue{margin:0}.stepedit .choiceValue{width:auto}
 .fxParam>span{flex-direction:row;align-items:baseline;line-height:14px;gap:2px;white-space:nowrap}.fxParam input{display:block}.fxParam output{line-height:14px}
+.helpSettings{margin:8px 0 20px}.helpLanguage,.shakeSetting{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px}.shakeSetting input{width:20px;height:20px;accent-color:var(--ink)}#languageMessage:empty{display:none}
+html[lang=zh-CN] .patternBar{right:94px}

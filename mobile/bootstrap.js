@@ -5,6 +5,8 @@ import {Filesystem,Directory} from '@capacitor/filesystem';
 import {Share} from '@capacitor/share';
 import {PROJECT_KEY,RECOVERY_KEY,LIBRARY_KEY,parseProject,restoreLatest,readLibrary,createWriter,exportBudget,safeFilename,MAX_FILE_BYTES} from './storage.js';
 import {installHelp} from './help.js';
+import {installLocalization,LANGUAGE_KEY,normalizeLanguage} from './localization.js';
+import {installShakePalette} from './shake-palette.js';
 import {installChoiceControls} from './choice-controls.js';
 
 const $=s=>document.querySelector(s),native=Capacitor.isNativePlatform();
@@ -14,6 +16,8 @@ const notify=text=>{$('#saveState').textContent=text;};
 const write=createWriter(value=>Preferences.set(value),()=>notify('保存失败，请导出项目备份'));
 async function start(){
   if(native)document.documentElement.classList.add('native-app');
+  const languagePreference=await Preferences.get({key:LANGUAGE_KEY}).catch(()=>({value:localGet(LANGUAGE_KEY)}));
+  const locale=installLocalization(languagePreference.value);
   const saved=await Preferences.get({key:PROJECT_KEY}).catch(()=>({value:null}));
   const recovered=restoreLatest([saved.value,localGet(RECOVERY_KEY),localGet(PROJECT_KEY)]);
   if(recovered)localSet(PROJECT_KEY,JSON.stringify(recovered.project));
@@ -52,7 +56,7 @@ async function start(){
   $('#shellProject').onclick=openProjects;$('#closeProjects').onclick=()=>projectDialog.close();
   $('.mobileNav [data-tab="project"]').remove();
   for(const button of document.querySelectorAll('.mobileNav [data-tab]')){
-    button.setAttribute('aria-label',button.textContent.trim());
+    button.setAttribute('aria-label',({sequence:'音序',song:'编排',sound:'音色',fx:'效果',visual:'画面'})[button.dataset.tab]);
     const icon=button.querySelector('span');icon.setAttribute('aria-hidden','true');
     button.replaceChildren(icon);
   }
@@ -87,10 +91,16 @@ async function start(){
   $('.visualPanel .sectionhead>span').textContent='画面 / FIELD';
   document.addEventListener('contextmenu',e=>{if(!e.target.closest('input,textarea'))e.preventDefault();},true);
   const closeMod=document.createElement('button');closeMod.textContent='×';closeMod.setAttribute('aria-label','Close modulation');closeMod.onclick=()=>$('#modDialog').close();$('#modDialog .dialogHead').append(closeMod);
-  installHelp();
+  const shake=installShakePalette();
+  installHelp({locale,shake,async changeLanguage(language){
+    const next=normalizeLanguage(language);
+    await Preferences.set({key:LANGUAGE_KEY,value:next});
+    localSet(LANGUAGE_KEY,next);locale.setLanguage(next);
+  }});
   installChoiceControls();
 
   let library=[],libraryUnavailable=false;
+  window.addEventListener('loopfield-language-changed',()=>{if(projectDialog.open)renderLibrary();});
   try{const stored=await Preferences.get({key:LIBRARY_KEY});library=readLibrary(stored.value??localGet(LIBRARY_KEY));}
   catch{try{const backup=localGet(LIBRARY_KEY);if(!backup)throw Error('No valid library backup');library=readLibrary(backup);}catch{libraryUnavailable=true;$('#projectMessage').textContent='工程副本列表无法读取；当前编辑仍可导出。';}}
   function renderLibrary(){
@@ -99,7 +109,7 @@ async function start(){
     for(const item of [...library].reverse()){
       const row=document.createElement('div');row.className='libraryRow';
       const title=document.createElement('span');title.textContent=item.name;
-      const time=document.createElement('small');time.textContent=new Date(item.savedAt).toLocaleString('en-GB',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+      const time=document.createElement('small');time.textContent=new Date(item.savedAt).toLocaleString(locale.language==='zh'?'zh-CN':'en-GB',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
       title.append(time);const b=document.createElement('button');b.textContent='载入';b.setAttribute('aria-label','载入 '+item.name);
       b.onclick=async()=>{b.disabled=true;try{await app.openProject(item.project);await persist();projectDialog.close();app.toast('已载入副本 · 可用撤销恢复');}catch{app.toast('副本无法载入');}finally{b.disabled=false;}};
       row.append(title,b);$('#projectList').append(row);

@@ -1,5 +1,5 @@
 // Mobile-only copy catalog. Desktop copy and saved project content stay untouched.
-// A future language setting can select a locale bundle from this boundary.
+// The runtime locale layer applies this catalog only to interface text.
 const copy = {
  '音色 →':'SOUND →',
 

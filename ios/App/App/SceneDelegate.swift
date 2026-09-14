@@ -1,6 +1,7 @@
 import UIKit
 import Capacitor
 import AVFAudio
+import WebKit
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     var window: UIWindow?
@@ -26,10 +27,35 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
 final class LoopfieldViewController: CAPBridgeViewController {
     private var observers: [NSObjectProtocol] = []
-    override var preferredStatusBarStyle: UIStatusBarStyle { .darkContent }
+    private var lastShake: TimeInterval = -.infinity
+    private var paletteStatusStyle: UIStatusBarStyle = .darkContent
+    private lazy var appearanceHandler = PaletteAppearanceHandler(owner: self)
+    override var preferredStatusBarStyle: UIStatusBarStyle { paletteStatusStyle }
+    override var canBecomeFirstResponder: Bool { true }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        becomeFirstResponder()
+    }
+
+    override func motionEnded(_ motion: UIEvent.EventSubtype, with event: UIEvent?) {
+        guard motion == .motionShake, UIApplication.shared.applicationState == .active else { return }
+        let now = ProcessInfo.processInfo.systemUptime
+        guard now - lastShake >= 1.2 else { return }
+        lastShake = now
+        webView?.evaluateJavaScript("window.dispatchEvent(new Event('loopfield-shake'))", completionHandler: nil)
+    }
+
+    fileprivate func updatePalette(_ name: String) {
+        guard ["paper", "gameboy", "amber", "midnight", "ink"].contains(name) else { return }
+        paletteStatusStyle = ["amber", "midnight"].contains(name) ? .lightContent : .darkContent
+        setNeedsStatusBarAppearanceUpdate()
+    }
     override func viewDidLoad() {
         super.viewDidLoad()
         webView?.scrollView.bounces = false
+        UIApplication.shared.applicationSupportsShakeToEdit = false
+        webView?.configuration.userContentController.add(appearanceHandler, name: "loopfieldAppearance")
         let center = NotificationCenter.default
         for name in [UIApplication.willResignActiveNotification, AVAudioSession.interruptionNotification, AVAudioSession.mediaServicesWereResetNotification] {
             observers.append(center.addObserver(forName: name, object: nil, queue: .main) { [weak self] notification in
@@ -48,5 +74,18 @@ final class LoopfieldViewController: CAPBridgeViewController {
             self?.webView?.evaluateJavaScript("window.dispatchEvent(new Event('loopfield-active'))", completionHandler: nil)
         })
     }
-    deinit { for observer in observers { NotificationCenter.default.removeObserver(observer) } }
+    deinit {
+        webView?.configuration.userContentController.removeScriptMessageHandler(forName: "loopfieldAppearance")
+        for observer in observers { NotificationCenter.default.removeObserver(observer) }
+    }
+}
+
+// WKUserContentController retains its handler, so the handler keeps only a weak owner.
+private final class PaletteAppearanceHandler: NSObject, WKScriptMessageHandler {
+    weak var owner: LoopfieldViewController?
+    init(owner: LoopfieldViewController) { self.owner = owner }
+    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        guard message.frameInfo.isMainFrame, let palette = message.body as? String else { return }
+        owner?.updatePalette(palette)
+    }
 }
