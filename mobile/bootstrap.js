@@ -5,6 +5,7 @@ import {Filesystem,Directory} from '@capacitor/filesystem';
 import {Share} from '@capacitor/share';
 import {PROJECT_KEY,RECOVERY_KEY,LIBRARY_KEY,parseProject,restoreLatest,readLibrary,createWriter,exportBudget,safeFilename,MAX_FILE_BYTES} from './storage.js';
 import {installHelp} from './help.js';
+import {installChoiceControls} from './choice-controls.js';
 
 const $=s=>document.querySelector(s),native=Capacitor.isNativePlatform();
 const localGet=key=>{try{return localStorage.getItem(key);}catch{return null;}};
@@ -85,7 +86,9 @@ async function start(){
   $('.fieldNote').remove();$('.visualFooter').remove();
   $('.visualPanel .sectionhead>span').textContent='画面 / FIELD';
   document.addEventListener('contextmenu',e=>{if(!e.target.closest('input,textarea'))e.preventDefault();},true);
+  const closeMod=document.createElement('button');closeMod.textContent='×';closeMod.setAttribute('aria-label','Close modulation');closeMod.onclick=()=>$('#modDialog').close();$('#modDialog .dialogHead').append(closeMod);
   installHelp();
+  installChoiceControls();
 
   let library=[],libraryUnavailable=false;
   try{const stored=await Preferences.get({key:LIBRARY_KEY});library=readLibrary(stored.value??localGet(LIBRARY_KEY));}
@@ -96,7 +99,7 @@ async function start(){
     for(const item of [...library].reverse()){
       const row=document.createElement('div');row.className='libraryRow';
       const title=document.createElement('span');title.textContent=item.name;
-      const time=document.createElement('small');time.textContent=new Date(item.savedAt).toLocaleString('zh-CN',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+      const time=document.createElement('small');time.textContent=new Date(item.savedAt).toLocaleString('en-GB',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
       title.append(time);const b=document.createElement('button');b.textContent='载入';b.setAttribute('aria-label','载入 '+item.name);
       b.onclick=async()=>{b.disabled=true;try{await app.openProject(item.project);await persist();projectDialog.close();app.toast('已载入副本 · 可用撤销恢复');}catch{app.toast('副本无法载入');}finally{b.disabled=false;}};
       row.append(title,b);$('#projectList').append(row);

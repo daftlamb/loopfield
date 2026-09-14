@@ -50,7 +50,7 @@ body[data-mobile-tab=visual] main>.instrument{display:block!important;height:0!i
 #projectContent .instrumentFoot{margin:8px 0}.instrumentFoot button{font-size:12px;min-height:44px}.instrumentFoot select{font-size:16px;min-height:44px}
 .libraryHeading{font-size:12px;margin:24px 0 8px}.libraryRow{display:flex;justify-content:space-between;align-items:center;gap:12px;border-bottom:1px solid var(--line);padding:10px 0;font-size:14px}.libraryRow span{overflow-wrap:anywhere;min-width:0}.libraryRow small{display:block;font-size:10px;color:var(--muted);margin-top:6px}.libraryRow button{min-height:44px;min-width:54px;border:1px solid var(--line);flex-shrink:0;font-size:12px}
 #projectMessage{font-size:12px;line-height:1.7}#helpText{font-size:16px;line-height:1.8;margin:12px 0}
-.helpMode [data-help]{outline:1px dashed var(--muted);outline-offset:-2px}#shellHelp[aria-pressed=true]{background:var(--ink);color:var(--paper)}
+
 #toast{z-index:100;bottom:calc(70px + var(--shell-bottom));max-width:calc(100% - 32px);white-space:normal;overflow-wrap:anywhere;font-size:12px;padding:12px 16px}
 .startupError{position:static;padding:80px 24px;font-family:system-ui;line-height:1.8}
 @media(max-height:740px){.quickSound{flex-basis:76px}.quickTitle{min-height:24px}#quickParameters input{min-height:32px}.sequencePanel .grid{gap:5px;padding:5px 1px}.sequencePanel .step{padding:3px 7px}.step .value{font-size:14px}.step small{font-size:9px}}
@@ -61,3 +61,43 @@ body[data-mobile-tab=visual] main>.instrument{display:block!important;height:0!i
 .mobileNav button{display:flex;align-items:center;justify-content:center;padding:0}
 .mobileNav button span{margin:0}
 .mobileNav button span .uiIcon{width:24px;height:24px}
+
+/* Shared mobile scale and flat section headers. */
+:root{--ui-size:12px;--detail-size:10px}
+.mobileTrackBar,.sectionhead{border:0}
+.sectionhead,.soundPanel .sectionhead,.songPanel .sectionhead{height:40px;min-height:40px}
+.sectionhead>span,.sequencePanel .sectionhead>span,.fxPanel .sectionhead>span:last-child{font-size:var(--ui-size);letter-spacing:0}
+.sectionhead small{display:none}
+button,label,.param>div,.quickTitle,.quickTitle button,.sceneSettings label,.songToolbar,.fxTargetLabel{font-size:var(--ui-size)}
+.choiceControl{display:inline-flex;align-items:center;justify-content:space-between;min-width:0;max-width:100%;gap:0;vertical-align:middle}
+.choiceControl button{display:flex;align-items:center;justify-content:center;min-width:36px;min-height:44px;padding:0 6px;border:0;flex-shrink:0;font-size:20px;touch-action:manipulation}
+.choiceValue{font-size:var(--ui-size);text-align:center;min-width:22px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.choiceControl.segmented{gap:4px;flex-wrap:wrap}
+.choiceControl.segmented button{font-size:var(--ui-size);padding:0 10px;min-width:44px;color:var(--muted)}
+.choiceControl.segmented button[aria-pressed=true]{background:var(--ink);color:var(--paper)}
+.choiceControl button:focus-visible{outline:1px solid var(--ink);outline-offset:-2px}
+.sectionhead .choiceControl button{min-height:40px;min-width:28px}
+.patternBar{right:94px;gap:2px}.patternBar>button{font-size:var(--ui-size)}
+.stepedit label>.choiceControl{flex:1}.stepedit .choiceValue{flex:1;text-align:left;font-size:16px}
+.soundhead{display:grid;grid-template-columns:1fr auto auto;gap:4px;margin-bottom:12px}
+.soundhead>.choiceControl{grid-column:1/-1;justify-content:flex-start}.soundhead>.choiceControl .choiceValue{min-width:100px}
+.soundhead button{font-size:var(--ui-size);min-height:44px}
+.soundhead .choiceControl button{font-size:20px}
+.sceneSettings{display:grid;grid-template-columns:1fr;gap:4px}.sceneSettings label{display:flex;align-items:center;justify-content:space-between}.sceneSettings .choiceControl{width:190px}
+.songToolbar{flex-wrap:wrap}.songToolbar label{flex-wrap:wrap}.songRow{grid-template-columns:18px minmax(0,1fr) minmax(0,1fr) 32px 32px 32px;gap:0}.songRow .choiceControl button{min-width:26px;padding:0}.songRow .choiceValue{min-width:18px}.songRow>button{min-height:44px}
+.fxTargetLabel{border:0;min-height:44px;padding:0}.fxTargetLabel .choiceControl{min-width:160px}
+.fxRow{grid-template-columns:76px repeat(3,minmax(0,1fr));gap:8px;padding:9px 0;border:0;min-height:66px}
+.fxToggle{grid-column:auto;min-height:44px;font-size:var(--ui-size);gap:5px}.fxToggle>span:last-child{display:block}.fxToggle small{display:none}
+.fxParam>span{flex-direction:column;gap:2px;font-size:var(--detail-size)}.fxParam input{min-height:32px;margin:0}.fxRoute{font-size:var(--detail-size);margin:8px 0;line-height:1.5}
+.fxPanel{padding-bottom:0}
+.quickGuide{margin:8px 0}.quickGuide dt{font-size:var(--ui-size);margin-top:18px}.quickGuide dd{font-size:var(--ui-size);line-height:1.7;margin:6px 0;color:var(--muted)}
+.modFields label .choiceControl,.pointEdit .choiceControl{display:flex}.modFields label{min-width:0}.modRoute>.choiceControl{grid-column:1/-1}.pitchTools>.choiceControl{flex:1 1 45%}
+@media(max-height:740px){.fxRow{padding:3px 0;min-height:58px}.fxRoute{margin:2px 0}}
+
+.fxParam>span,.fxParam output,#quickParameters label>span,#quickParameters output{font-size:var(--ui-size)}
+#modDialog .modFields label,#modDialog .modToolbar,#modDialog .pointEdit,#modDialog .modHelp{font-size:var(--ui-size)}
+#modDialog .dialogHead button{min-width:44px;min-height:44px;font-size:24px}
+#projectContent .instrumentFoot>.choiceControl{display:flex;width:100%;max-width:none}
+#projectContent .instrumentFoot .choiceControl button{width:auto;border:0;padding:0 10px;min-height:44px}
+.stepedit .choiceControl,.stepedit .choiceValue{margin:0}.stepedit .choiceValue{width:auto}
+.fxParam>span{flex-direction:row;align-items:baseline;line-height:14px;gap:2px;white-space:nowrap}.fxParam input{display:block}.fxParam output{line-height:14px}
