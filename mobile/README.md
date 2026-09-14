@@ -80,3 +80,9 @@ Capacitor CLI 开发依赖有 3 项 moderate audit 提示；未做破坏性强�
 - 使用说明加入随机功能路径：选择 NOTE / VEL / CHANCE / RATCHET / GATE → TOOLS → RANDOM。NOTE 随机音符与开关，其余模式只随机已开启步的对应参数，作用于当前音轨。
 - 47 项 Node 测试通过，包括摇动去重、开关保存、后台和文本输入保护。浏览器验证播放中英中切换不停止，重开保留语言，中文工程名保持原样，随机连击及撤销正常。
 - iOS 开发签名和模拟器构建均通过；模拟器 Shake 菜单实际验证 INK → PAPER → GAME BOY → AMBER，AMBER 状态栏为白色。Build 5 已安装到 iPhone。
+
+## Build 6 · Pixel wordmark and TestFlight package
+
+- 图标更换为两行 LOOP / FIELD 像素字，保留生成源图；`swift mobile/make-icon.swift` 输出无 alpha 的 1024px RGB 图标。
+- 1.0 (6) Release 归档和 App Store Connect 签名 IPA 导出通过，新图标已安装到 iPhone。
+- TestFlight 上传尚未完成：Apple 返回 `Error Downloading App Information`，需要登录 App Store Connect 核对应用记录。测试说明、产物位置和重试命令见 `mobile/TestFlight.md`。
