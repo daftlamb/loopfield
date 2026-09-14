@@ -86,3 +86,10 @@ Capacitor CLI 开发依赖有 3 项 moderate audit 提示；未做破坏性强�
 - 图标更换为两行 LOOP / FIELD 像素字，保留生成源图；`swift mobile/make-icon.swift` 输出无 alpha 的 1024px RGB 图标。
 - 1.0 (6) Release 归档和 App Store Connect 签名 IPA 导出通过，新图标已安装到 iPhone。
 - TestFlight 上传尚未完成：Apple 返回 `Error Downloading App Information`，需要登录 App Store Connect 核对应用记录。测试说明、产物位置和重试命令见 `mobile/TestFlight.md`。
+
+## Build 7
+
+- Added PAD (three detuned triangles, slow attack) and BASS (saw + octave sub, filter envelope), retaining existing note/velocity/gate/ratchet/LFO/FX paths.
+- Visual allows landscape and hides surrounding controls; portrait restores the normal app. Canvas aspect ratio is preserved.
+- Repeat real-audio validation by serving the repository and opening `mobile/voice-render-check.html`; this diagnostic is excluded from the mobile bundle.
+- Release artifacts and verification limitations: see `TestFlight.md`.

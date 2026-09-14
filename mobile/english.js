@@ -1,6 +1,7 @@
 // Mobile-only copy catalog. Desktop copy and saved project content stay untouched.
 // The runtime locale layer applies this catalog only to interface text.
 const copy = {
+ 'PAD / 铺底':'PAD','BASS / 贝斯':'BASS',
  '音色 →':'SOUND →',
 
  'AUTO 保留原包络；100% 为一格，200% 为两格。后续步进时间不变。':'AUTO uses the voice envelope. 100% is one step; 200% is two. Step timing stays unchanged.',

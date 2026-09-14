@@ -36,7 +36,24 @@ export function playNote(ctx,bus,t,s,time,gate=null,{bpm=96,origin=0,chip=null,t
     if(t.kind==='snare')osc('triangle',180);
   }else{
     const struck=t.kind==='bell'||t.kind==='pluck';
-    const carrier=osc(struck||t.kind==='fm'?'sine':t.kind,f);
+    const carrier=osc(struck||t.kind==='fm'?'sine':t.kind==='pad'?'triangle':t.kind==='bass'?'sawtooth':t.kind,f);
+    if(t.kind==='pad'||t.kind==='bass'){
+      // Normalise the layered voice before the shared velocity, gate and FX path.
+      carrier.disconnect();
+      const layer=(source,level)=>{const gain=ctx.createGain();gain.gain.value=level;source.connect(gain);gain.connect(env);nodes.push(gain);};
+      layer(carrier,t.kind==='pad'?.5:.4);
+      if(t.kind==='pad'){
+        for(const cents of [-7,7]){const o=osc('triangle',f*2**(cents/1200));o.disconnect();layer(o,.25);}
+      }else{
+        const sub=osc('sine',f/2);sub.disconnect();layer(sub,.6);
+        // A short filter envelope gives each bass note an articulated onset.
+        if(!routeFor(t.mod,'cutoff')){
+          filter.frequency.cancelScheduledValues(time);
+          filter.frequency.setValueAtTime(Math.min(18000,t.cutoff*3),time);
+          filter.frequency.exponentialRampToValueAtTime(t.cutoff,Math.min(end,time+.16));
+        }
+      }
+    }
     if(struck){
       // Bell modes are inharmonic; pluck harmonics lose high-frequency energy fastest.
       // Each oscillator shares pitch/LFO/CHIP automation and the existing gate/velocity envelope.

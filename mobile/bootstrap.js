@@ -1,4 +1,4 @@
-import {Capacitor} from '@capacitor/core';
+import {Capacitor,SystemBars} from '@capacitor/core';
 import {App} from '@capacitor/app';
 import {Preferences} from '@capacitor/preferences';
 import {Filesystem,Directory} from '@capacitor/filesystem';
@@ -98,6 +98,14 @@ async function start(){
     localSet(LANGUAGE_KEY,next);locale.setLanguage(next);
   }});
   installChoiceControls();
+  const landscape=matchMedia('(orientation:landscape)');
+  const updateVisualMode=()=>{
+    const visual=document.body.dataset.mobileTab==='visual';
+    window.webkit?.messageHandlers?.loopfieldVisual?.postMessage(visual);
+    if(native)SystemBars[visual&&landscape.matches?'hide':'show']({bar:'NavigationBar'}).catch(console.error);
+  };
+  landscape.addEventListener('change',updateVisualMode);
+  window.addEventListener('loopfield-tab-changed',updateVisualMode);updateVisualMode();
 
   let library=[],libraryUnavailable=false;
   window.addEventListener('loopfield-language-changed',()=>{if(projectDialog.open)renderLibrary();});

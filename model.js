@@ -1,10 +1,12 @@
 import {defaultMod,validateMod} from './modulation.js';
 import {defaultFx,validateFx} from './fx-model.js';
 export const STEPS=32;
-export const voiceKinds=['fm','sine','triangle','square','sawtooth','bell','pluck','kick','snare','hat','noise'];
+export const voiceKinds=['fm','sine','triangle','square','sawtooth','bell','pluck','pad','bass','kick','snare','hat','noise'];
 const voiceDefaults={
   bell:{attack:.002,decay:1.6,cutoff:14000,resonance:.7,fm:0,ratio:2.5},
-  pluck:{attack:.002,decay:.65,cutoff:10000,resonance:.7,fm:0,ratio:1}
+  pluck:{attack:.002,decay:.65,cutoff:10000,resonance:.7,fm:0,ratio:1},
+  pad:{attack:.35,decay:2,cutoff:2400,resonance:.7,fm:0,ratio:1},
+  bass:{attack:.004,decay:.45,cutoff:900,resonance:1.2,fm:0,ratio:1}
 };
 export function selectVoice(track,kind){
   if(!voiceKinds.includes(kind))throw Error('未知音色');

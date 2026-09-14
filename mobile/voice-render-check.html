@@ -1,0 +1,14 @@
+<!doctype html><html><body><h1>Voice render validation</h1><pre id="result">Rendering…</pre><script type="module">
+import {makeProject,selectVoice} from '../model.js';
+import {playStep} from '../audio.js';
+const results=[];
+for(const kind of ['bell','pluck','pad','bass'])for(const ratchet of [1,4])for(const gate of [0,100]){
+ const ctx=new OfflineAudioContext(2,44100*4,44100),input=ctx.createGain();input.connect(ctx.destination);
+ const t=makeProject().patterns[0][0];selectVoice(t,kind);
+ playStep(ctx,{input},t,{...t.steps[0],on:true,note:kind==='bass'?36:60,velocity:.8,ratchet,gate},.02,.25,120);
+ const b=await ctx.startRendering(),d=b.getChannelData(0);let peak=0,energy=0,tail=0,finite=true;
+ for(let i=0;i<d.length;i++){finite&&=Number.isFinite(d[i]);peak=Math.max(peak,Math.abs(d[i]));energy+=d[i]*d[i];if(i>d.length-2205)tail=Math.max(tail,Math.abs(d[i]));}
+ results.push({kind,ratchet,gate,finite,peak,rms:Math.sqrt(energy/d.length),tail,pass:finite&&peak>.001&&peak<1&&tail<.00001});
+}
+document.querySelector('#result').textContent=JSON.stringify({pass:results.every(r=>r.pass),results},null,2);
+</script></body></html>

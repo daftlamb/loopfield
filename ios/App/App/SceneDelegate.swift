@@ -31,6 +31,25 @@ final class LoopfieldViewController: CAPBridgeViewController {
     private var paletteStatusStyle: UIStatusBarStyle = .darkContent
     private lazy var appearanceHandler = PaletteAppearanceHandler(owner: self)
     override var preferredStatusBarStyle: UIStatusBarStyle { paletteStatusStyle }
+    private var visualMode = false
+    override var supportedInterfaceOrientations: UIInterfaceOrientationMask { visualMode ? .allButUpsideDown : .portrait }
+    private var immersive: Bool { visualMode && (view.window?.windowScene?.interfaceOrientation.isLandscape ?? false) }
+    override var prefersStatusBarHidden: Bool { immersive }
+    fileprivate func updateVisualMode(_ enabled: Bool) {
+        guard visualMode != enabled else { return }
+        visualMode = enabled
+        setNeedsUpdateOfSupportedInterfaceOrientations()
+        if !enabled { view.window?.windowScene?.requestGeometryUpdate(.iOS(interfaceOrientations: .portrait)) }
+        setNeedsStatusBarAppearanceUpdate()
+        setNeedsUpdateOfHomeIndicatorAutoHidden()
+    }
+    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+        super.viewWillTransition(to: size, with: coordinator)
+        coordinator.animate(alongsideTransition: { [weak self] _ in
+            self?.setNeedsStatusBarAppearanceUpdate()
+            self?.setNeedsUpdateOfHomeIndicatorAutoHidden()
+        })
+    }
     override var canBecomeFirstResponder: Bool { true }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -56,6 +75,7 @@ final class LoopfieldViewController: CAPBridgeViewController {
         webView?.scrollView.bounces = false
         UIApplication.shared.applicationSupportsShakeToEdit = false
         webView?.configuration.userContentController.add(appearanceHandler, name: "loopfieldAppearance")
+        webView?.configuration.userContentController.add(appearanceHandler, name: "loopfieldVisual")
         let center = NotificationCenter.default
         for name in [UIApplication.willResignActiveNotification, AVAudioSession.interruptionNotification, AVAudioSession.mediaServicesWereResetNotification] {
             observers.append(center.addObserver(forName: name, object: nil, queue: .main) { [weak self] notification in
@@ -76,6 +96,7 @@ final class LoopfieldViewController: CAPBridgeViewController {
     }
     deinit {
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "loopfieldAppearance")
+        webView?.configuration.userContentController.removeScriptMessageHandler(forName: "loopfieldVisual")
         for observer in observers { NotificationCenter.default.removeObserver(observer) }
     }
 }
@@ -85,7 +106,12 @@ private final class PaletteAppearanceHandler: NSObject, WKScriptMessageHandler {
     weak var owner: LoopfieldViewController?
     init(owner: LoopfieldViewController) { self.owner = owner }
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
-        guard message.frameInfo.isMainFrame, let palette = message.body as? String else { return }
+        guard message.frameInfo.isMainFrame else { return }
+        if message.name == "loopfieldVisual", let enabled = message.body as? Bool {
+            owner?.updateVisualMode(enabled)
+            return
+        }
+        guard let palette = message.body as? String else { return }
         owner?.updatePalette(palette)
     }
 }
