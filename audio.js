@@ -35,7 +35,22 @@ export function playNote(ctx,bus,t,s,time,gate=null,{bpm=96,origin=0,chip=null,t
     const src=ctx.createBufferSource();src.buffer=noiseBuffers.get(ctx);src.loop=true;src.playbackRate.value=2**((s.note-60)/12);src.connect(env);sources.push(src);pitch(src.detune);
     if(t.kind==='snare')osc('triangle',180);
   }else{
-    const carrier=osc(t.kind==='fm'?'sine':t.kind,f);
+    const struck=t.kind==='bell'||t.kind==='pluck';
+    const carrier=osc(struck||t.kind==='fm'?'sine':t.kind,f);
+    if(struck){
+      // Bell modes are inharmonic; pluck harmonics lose high-frequency energy fastest.
+      // Each oscillator shares pitch/LFO/CHIP automation and the existing gate/velocity envelope.
+      const partials=t.kind==='bell'
+        ?[[2.756,.28,.8],[5.404,.14,.45],[8.933,.06,.22]]
+        :[[2,.36,.4],[3,.20,.24],[4,.10,.16],[6,.05,.09]];
+      for(const [ratio,level,damping] of partials){
+        if(f*ratio>=ctx.sampleRate*.45)continue;
+        const gain=ctx.createGain(),o=ctx.createOscillator();o.type='sine';o.frequency.setValueAtTime(f*ratio,time);
+        gain.gain.setValueAtTime(level,time);
+        gain.gain.exponentialRampToValueAtTime(.0001,Math.min(end,time+Math.max(.008,t.decay*damping)));
+        o.connect(gain);gain.connect(env);pitch(o.detune);sources.push(o);nodes.push(gain);
+      }
+    }
     if(t.fm>0||routeFor(t.mod,'fm')){const mod=ctx.createOscillator(),depth=ctx.createGain();mod.frequency.value=f*t.ratio;if(!routeFor(t.mod,'fm')){depth.gain.setValueAtTime(f*t.fm,time);depth.gain.exponentialRampToValueAtTime(Math.max(0.01,f*t.fm*0.12),end);}mod.connect(depth);depth.connect(carrier.frequency);if(routeFor(t.mod,'fm'))motion(depth.gain,'fm',t.fm,v=>f*v);motion(mod.frequency,'ratio',t.ratio,v=>f*v);pitch(mod.detune);sources.push(mod);nodes.push(depth);}
   }
   let ended=0;

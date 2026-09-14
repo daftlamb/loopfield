@@ -50,3 +50,11 @@ npm run ios:open
 MIDI 原生连接、AUv3、后台持续演奏、Nudge 和新的动画显示逻辑未加入第一轮。原有桌面 Web MIDI 保留，iOS 页面隐藏此入口。WAV 内存与复杂多轨 FX 的性能需要真机进一步验证。
 
 Capacitor CLI 开发依赖有 3 项 moderate audit 提示；未做破坏性强制升级。检查结果不等于上架审核；当前是本机试用版本。
+
+## Build 2 · Icon navigation, Bell and Pluck
+
+- 底栏仅保留居中图标，保留原触摸区域、选中指示和 VoiceOver 名称。
+- 音色页的合成方式新增 BELL / 钟声与 PLUCK / 拨弦。Bell 使用非谐波泛音，Pluck 使用快速衰减的高次谐波；两者共用原来的音高、力度、Gate、滤波、FM、LFO 与琶音链路。
+- 选择新音色时设置适合它的起音、衰减、滤波与 FM 初值，保留音符、音轨音量、声像、静音、调制和 FX。旧工程不会自动换音色；含新音色的 JSON 需要更新后的版本读取。
+- 46 项 Node 测试通过；`voices-test.html` 用实际 OfflineAudioContext 检查音色频谱、衰减、尾音终止、Gate、低/高音、LFO + NORMAL/CHIP ARP 和双音色立体声 WAV，全部通过。
+- 浏览器确认五个底栏按钮均无可见文字、保留名称；Bell / Pluck 选择与试听入口正常，刷新保留已选音色。iOS 开发签名 Build 2 通过并安装启动于已连接 iPhone。

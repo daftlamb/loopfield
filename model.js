@@ -1,6 +1,17 @@
 import {defaultMod,validateMod} from './modulation.js';
 import {defaultFx,validateFx} from './fx-model.js';
 export const STEPS=32;
+export const voiceKinds=['fm','sine','triangle','square','sawtooth','bell','pluck','kick','snare','hat','noise'];
+const voiceDefaults={
+  bell:{attack:.002,decay:1.6,cutoff:14000,resonance:.7,fm:0,ratio:2.5},
+  pluck:{attack:.002,decay:.65,cutoff:10000,resonance:.7,fm:0,ratio:1}
+};
+export function selectVoice(track,kind){
+  if(!voiceKinds.includes(kind))throw Error('未知音色');
+  track.kind=kind;
+  // Seed a recognizable strike; preserve notes, level, pan, modulation and routing.
+  if(Object.hasOwn(voiceDefaults,kind))Object.assign(track,voiceDefaults[kind]);
+}
 export const labels=['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];
 export const noteName=n=>labels[n%12]+(Math.floor(n/12)-1);
 export const stepDuration=(bpm,swing,index)=>60/bpm/4*(1+(index%2?-1:1)*swing/100);
@@ -37,7 +48,7 @@ export function validateProject(p){
     for(const t of tracks){
       if(t&&t.mod===undefined)t.mod=defaultMod();
       if(t)validateMod(t.mod);
-      if(!t||typeof t.name!=='string'||t.name.length>40||!['fm','sine','triangle','square','sawtooth','kick','snare','hat','noise'].includes(t.kind)||typeof t.mute!=='boolean'||typeof t.solo!=='boolean')throw Error('音轨格式不正确');
+      if(!t||typeof t.name!=='string'||t.name.length>40||!voiceKinds.includes(t.kind)||typeof t.mute!=='boolean'||typeof t.solo!=='boolean')throw Error('音轨格式不正确');
       for(const [k,a,b] of [['volume',0,1],['attack',0.002,1],['decay',0.03,2],['cutoff',80,18000],['resonance',0.1,12],['fm',0,8],['ratio',0.5,8],['pan',-1,1]])if(!num(t[k],a,b))throw Error('音色参数超出范围');
       if(!Array.isArray(t.steps)||t.steps.length!==STEPS||t.steps.some(s=>!s||typeof s.on!=='boolean'||!Number.isInteger(s.note)||!num(s.note,24,96)||!num(s.velocity,0.05,1)||!num(s.probability,0,1)))throw Error('音符格式不正确');
     }

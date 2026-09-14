@@ -3,7 +3,7 @@ import {icon} from './icons.js';
 import {setupModUI} from './mod-ui.js';
 import {setupMobile} from './mobile.js';
 import {startVisuals} from './visuals.js';
-import {makeProject,makeEmptyProject,validateProject,noteName,clone,STEPS,toggleSolo,transformNotes,randomizeTrack,patternName,addPattern,songOrder} from './model.js';
+import {selectVoice,makeProject,makeEmptyProject,validateProject,noteName,clone,STEPS,toggleSolo,transformNotes,randomizeTrack,patternName,addPattern,songOrder} from './model.js';
 import {Engine,renderWav} from './audio.js';
 import {fxSpecs,fxValue} from './fx-model.js';
 const $=s=>document.querySelector(s),key='loopfield-project-v1';
@@ -121,7 +121,7 @@ function renderFx(){fxControls.forEach(({spec,row,toggle,controls})=>{const fx=e
 function renderProject(){ $('#projectName').value=project.name;$('#bpm').value=project.bpm;$('#swing').value=project.swing;$('#mobileSwing').value=project.swing;$('#mobileSwingValue').textContent=project.swing+'%';$('#swingValue').textContent=project.swing+'%';$('#master').value=Math.round(project.master*100);renderEditor();renderFx();renderSong();}
 $('#modes').onclick=e=>{const button=e.target.closest('button'),editor=button?.dataset.editor,m=button?.dataset.mode;if(!editor&&!m)return;$('.sequencePanel').classList.toggle('modQuickActive',!!editor);$('#modQuick').hidden=!editor;[...$('#modes').children].forEach(b=>b.classList.toggle('active',b===button));if(editor){modUI.open(editor);return;}mode=m;$('#random').innerHTML=icon('shuffle')+randomLabels[mode];renderGrid();};
 for(const k of ['velocity','probability','note','ratchet','gate']){const input=$('#'+k);input.addEventListener('pointerdown',checkpoint);input.addEventListener('keydown',e=>{if(e.key.startsWith('Arrow'))checkpoint();});input.oninput=()=>{const s=current().steps[selected];s[k]=Number(input.value)/(['note','ratchet','gate'].includes(k)?1:100);s.on=true;renderGrid();renderStep();save();if(k==='note')previewEditedNote();};}
-$('#kind').onchange=()=>{checkpoint();current().kind=$('#kind').value;renderEditor();save();};
+$('#kind').onchange=()=>{checkpoint();selectVoice(current(),$('#kind').value);renderEditor();save();};
 for(const k of ['mute','solo'])$('#'+k).onclick=()=>{checkpoint();if(k==='solo')toggleSolo(project.patterns[project.pattern],track);else current().mute=!current().mute;renderEditor();save();};
 $('#audition').onclick=async()=>{try{await engine.preview(current(),{...current().steps[selected],velocity:0.8});}catch{toast('音频启动失败，请重新点按试听');}};
 async function stop(){await engine.stop();renderPatterns();renderSong();$('#songStatus').textContent='READY';$('#play').innerHTML=icon('play');$('#play').setAttribute('aria-label','播放');$('#play').classList.remove('playing');$('#transportState').textContent='READY TO PLAY';$('#position').textContent='— / 32';gridButtons.forEach(b=>b.classList.remove('current'));trackButtons.forEach(b=>b.classList.remove('hit'));}

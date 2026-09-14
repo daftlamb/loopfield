@@ -50,6 +50,11 @@ async function start(){
   const openProjects=()=>{if(!projectDialog.open){projectDialog.showModal();renderLibrary();}};
   $('#shellProject').onclick=openProjects;$('#closeProjects').onclick=()=>projectDialog.close();
   $('.mobileNav [data-tab="project"]').remove();
+  for(const button of document.querySelectorAll('.mobileNav [data-tab]')){
+    button.setAttribute('aria-label',button.textContent.trim());
+    const icon=button.querySelector('span');icon.setAttribute('aria-hidden','true');
+    button.replaceChildren(icon);
+  }
   $('.mobileNav').onclick=e=>{const b=e.target.closest('[data-tab]');if(b)app.setMobileTab(b.dataset.tab);};
   $('.mobileTrackBar').append($('#tracks'));$('.mobileTrackBar label').hidden=true;$('#mobileStep').hidden=true;
   $('#tracks').setAttribute('aria-label','选择音轨');

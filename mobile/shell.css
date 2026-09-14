@@ -56,3 +56,8 @@ body[data-mobile-tab=visual] main>.instrument{display:block!important;height:0!i
 @media(max-height:740px){.quickSound{flex-basis:76px}.quickTitle{min-height:24px}#quickParameters input{min-height:32px}.sequencePanel .grid{gap:5px;padding:5px 1px}.sequencePanel .step{padding:3px 7px}.step .value{font-size:14px}.step small{font-size:9px}}
 @media(min-width:761px){header,.transport,.mobileTrackBar,.mobileNav{padding-left:max(24px,calc((100% - 600px)/2));padding-right:max(24px,calc((100% - 600px)/2))}.sequencePanel .grid{gap:12px}.sequencePanel .step .value{font-size:22px}.quickSound{flex-basis:112px}#quickParameters label>span,#quickParameters output{font-size:12px}#quickParameters input{min-height:48px}}
 .sequencePanel .step.otherPage{display:none}
+
+/* Icon-only navigation keeps full-size touch targets and accessible page names. */
+.mobileNav button{display:flex;align-items:center;justify-content:center;padding:0}
+.mobileNav button span{margin:0}
+.mobileNav button span .uiIcon{width:24px;height:24px}

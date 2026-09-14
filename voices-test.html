@@ -1,0 +1,34 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Loopfield Bell / Pluck audio checks</title>
+<button id="run">Run voice audio checks</button><pre id="results">Ready</pre>
+<script type="module">
+import {makeProject,selectVoice,clone} from './model.js';
+import {playNote,playStep,renderWav,createBus} from './audio.js';
+const assert=(condition,message)=>{if(!condition)throw Error(message);};
+const rms=(data,from,to)=>{let sum=0;const a=Math.floor(from*44100),b=Math.min(data.length,Math.floor(to*44100));for(let i=a;i<b;i++)sum+=data[i]**2;return Math.sqrt(sum/(b-a));};
+function amplitude(data,frequency,from=.025,length=.075){let real=0,imag=0;const start=Math.floor(from*44100),n=Math.floor(length*44100);for(let i=0;i<n;i++){const window=.5-.5*Math.cos(2*Math.PI*i/(n-1)),angle=2*Math.PI*frequency*i/44100,v=data[start+i]*window;real+=v*Math.cos(angle);imag+=v*Math.sin(angle);}return Math.hypot(real,imag)*4/n;}
+async function render(kind,{note=69,gate=null,arp=false,lfo=false}={}){
+ const ctx=new OfflineAudioContext(2,44100*3,44100),track=makeProject().patterns[0][0];selectVoice(track,kind);track.pan=0;track.volume=.7;
+ if(lfo){Object.assign(track.mod.lfos[0],{enabled:true,routes:[{target:'pitch',from:-2,to:2}]});}
+ if(arp){Object.assign(track.mod.arp,{enabled:true,style:arp,rate:32});const bus=createBus(ctx,1,undefined,[makeProject().trackFx[0]]);bus.tracks[0].origin=.02;playStep(ctx,bus.tracks[0],track,{note,velocity:.8,ratchet:2,gate:400},.02,.25,120);}
+ else playNote(ctx,{input:ctx.destination},track,{note,velocity:.8},.02,gate);
+ const buffer=await ctx.startRendering(),data=buffer.getChannelData(0);
+ assert(data.every(Number.isFinite),kind+' non-finite output');assert(Math.max(...data.subarray(0,44100))<1,kind+' excessive output');assert(rms(data,.02,.15)>.001,kind+' silent');return data;
+}
+document.querySelector('#run').onclick=async()=>{const out=document.querySelector('#results');out.textContent='Running…';try{
+ const bell=await render('bell'),pluck=await render('pluck'),lines=[];
+ assert(amplitude(bell,440*2.756)>amplitude(pluck,440*2.756)*8,'Bell inharmonic mode missing');
+ assert(amplitude(pluck,880)>amplitude(bell,880)*8,'Pluck second harmonic missing');
+ for(const [kind,data] of [['bell',bell],['pluck',pluck]]){
+  assert(rms(data,.035,.1)>rms(data,.35,.45)*3,kind+' does not decay');
+  assert(rms(data,2.5,2.9)<1e-8,kind+' leaves audio tail after source end');
+  const gated=await render(kind,{gate:.04});assert(rms(gated,.2,.3)<1e-8,kind+' ignores gate release');
+  for(const note of [24,96])await render(kind,{note});
+  for(const arp of ['normal','chip'])await render(kind,{arp,lfo:true});
+  lines.push('PASS '+kind+': spectrum, decay, gate, low/high notes, LFO + normal/CHIP ARP');
+ }
+ const p=makeProject();p.patterns[0].forEach((t,i)=>{t.mute=i>1;t.steps.forEach(s=>s.on=false);});
+ for(const [i,kind] of ['bell','pluck'].entries()){selectVoice(p.patterns[0][i],kind);p.patterns[0][i].steps[i*4]={on:true,note:60+i*7,velocity:.8,probability:1,ratchet:1,gate:0};}
+ const wav=await renderWav(clone(p)),view=new DataView(await wav.arrayBuffer());assert(view.getUint32(0)===0x52494646&&view.getUint16(22,true)===2,'WAV header');let energy=0;for(let i=44;i<view.byteLength;i+=2)energy+=view.getInt16(i,true)**2;assert(energy>0,'WAV silent');
+ lines.push('PASS Bell + Pluck stereo WAV ('+wav.size+' bytes)');out.textContent=lines.join('\n')+'\nALL PASSED';
+}catch(error){out.textContent='FAIL '+error.stack;}};
+</script></html>
