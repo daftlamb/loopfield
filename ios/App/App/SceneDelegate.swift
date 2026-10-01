@@ -78,7 +78,10 @@ final class LoopfieldViewController: CAPBridgeViewController {
         if let instrumentHost { webView?.configuration.userContentController.addScriptMessageHandler(instrumentHost, contentWorld: .page, name: "loopfieldAU") }
         #if DEBUG
         if ProcessInfo.processInfo.arguments.contains("--loopfield-au-probe") { instrumentHost?.runAudioDiagnostic() }
-        if ProcessInfo.processInfo.arguments.contains("--loopfield-au-list") { instrumentHost?.writeInstrumentDiagnostic() }
+        if ProcessInfo.processInfo.arguments.contains("--loopfield-au-list") {
+            instrumentHost?.writeInstrumentDiagnostic()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 5) { [weak self] in self?.instrumentHost?.writeInstrumentDiagnostic() }
+        }
         #endif
         UIApplication.shared.applicationSupportsShakeToEdit = false
         webView?.configuration.userContentController.add(appearanceHandler, name: "loopfieldAppearance")

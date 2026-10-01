@@ -22,7 +22,7 @@ The sequencer sends notes, velocity, gate lengths, ratchets, probability decisio
 
 63 JavaScript tests pass, including legacy project compatibility, assignment/state validation, timestamp conversion, missing-plugin retry, cancellation during loading, mix/solo forwarding, state capture without reinstantiation and unsupported browser/WAV paths. Static/mobile bundles and signed Debug iOS build pass.
 
-The connected iPhone `mog` currently reports zero third-party AUv3 instrument components. Third-party instantiation, plugin editor interaction, multi-plugin load, preset sound restoration, interruption recovery and long-run timing remain unverified. Do not treat this build as release-qualified AUv3 support.
+Discovery initially returned only Apple components because the host was missing its inter-app-audio signing entitlement. After adding this entitlement to both Debug and Release, the signed Debug build on iPhone `mog` discovers 16 AUv3 instrument components, including Tabla and SYNQUAD (verified 2026-10-02). Both component descriptor and registered flags are 14, so the existing AUv3 filter accepts them. Third-party instantiation, plugin editor interaction, multi-plugin load, preset sound restoration, interruption recovery and long-run timing in Loopfield remain unverified. Do not treat this build as release-qualified AUv3 support.
 
 Debug-only `--loopfield-au-list` writes Documents/auv3-instruments.json. `--loopfield-au-probe` uses Apple's sampler and a generated sine sample through the host graph/MIDI queue and writes Documents/auv3-audio-check.json. This is an internal audio-path check, not a third-party AUv3 compatibility test. Normal launches do not run either diagnostic. On mog, the final sampler check accepted both note events, measured scheduled audio peak 0.0107032, drained the event queue, saved/restored state, and stopped the engine successfully.
 
@@ -32,3 +32,5 @@ Debug-only `--loopfield-au-list` writes Documents/auv3-instruments.json. `--loop
 - https://developer.apple.com/documentation/audiotoolbox/auaudiounit/requestviewcontroller(completionhandler:)
 - https://developer.apple.com/documentation/audiotoolbox/auaudiounit/fullstatefordocument
 - https://developer.apple.com/documentation/audiotoolbox/1387633-aueventsampletime
+
+The component manager is retained for the host lifetime. Debug list diagnostics include unfiltered instrument names, IDs and both descriptor/registered flags, with a second snapshot after startup. The entitlement must remain enabled when signing future TestFlight builds.

@@ -8,6 +8,7 @@ import CoreAudioKit
 final class AUInstrumentHost: NSObject, WKScriptMessageHandlerWithReply {
     weak var owner: UIViewController?
     weak var webView: WKWebView?
+    private let componentManager = AVAudioUnitComponentManager.shared()
     private var engine = AVAudioEngine()
     private var units = [Int: AVAudioUnit]()
     private var mixers = [Int: AVAudioMixerNode]()
@@ -109,7 +110,14 @@ final class AUInstrumentHost: NSObject, WKScriptMessageHandlerWithReply {
         } catch { result["error"] = error.localizedDescription; finish() }
     }
     func writeInstrumentDiagnostic() {
-        let result = instruments().map { ["id": identifier($0.audioComponentDescription), "name": $0.name] }
+        let query = AudioComponentDescription(componentType: kAudioUnitType_MusicDevice, componentSubType: 0, componentManufacturer: 0, componentFlags: 0, componentFlagsMask: 0)
+        let result = componentManager.components(matching: query).map { component -> [String: Any] in
+            var registered = AudioComponentDescription()
+            let status = AudioComponentGetDescription(component.audioComponent, &registered)
+            return ["id": identifier(component.audioComponentDescription), "name": component.name,
+                    "descriptorFlags": component.audioComponentDescription.componentFlags,
+                    "registeredFlags": registered.componentFlags, "status": status]
+        }
         if let data = try? JSONSerialization.data(withJSONObject: result, options: [.prettyPrinted]),
            let directory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
             try? data.write(to: directory.appendingPathComponent("auv3-instruments.json"), options: .atomic)
@@ -119,7 +127,7 @@ final class AUInstrumentHost: NSObject, WKScriptMessageHandlerWithReply {
     private func identifier(_ d: AudioComponentDescription) -> String { "\(d.componentType):\(d.componentSubType):\(d.componentManufacturer)" }
     private func instruments() -> [AVAudioUnitComponent] {
         let d = AudioComponentDescription(componentType: kAudioUnitType_MusicDevice, componentSubType: 0, componentManufacturer: 0, componentFlags: 0, componentFlagsMask: 0)
-        return AVAudioUnitComponentManager.shared().components(matching: d).filter {
+        return componentManager.components(matching: d).filter {
             $0.audioComponentDescription.componentFlags & AudioComponentFlags.isV3AudioUnit.rawValue != 0
         }.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
     }
