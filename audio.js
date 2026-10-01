@@ -1,3 +1,4 @@
+import {hasInstruments} from './auv3-model.js';
 import {vowelFormants} from './voice-shaping.js';
 import {midiNotes} from './midi.js';
 import {automate,modValue,routeFor,arpEvents} from './modulation.js';
@@ -127,13 +128,13 @@ export class Engine{
     if(this.ctx.state!=='running')throw new Error('Audio context is not running');
     if(!this.bus)this.bus=createBus(this.ctx,this.getProject().master,this.getProject().fx,this.getProject().trackFx);
   }
-  async start(){const generation=this.generation??0;await this.init();if(generation!==(this.generation??0))throw new DOMException('Audio start cancelled','AbortError');if(this.playing)return;this.playing=true;this.nextTime=this.ctx.currentTime+0.015;this.nextStep=0;this.queue=[];this.songPosition=0;this.bus.tracks.forEach(bus=>bus.origin=this.nextTime);this.activePattern=this.getProject().pattern;this.pendingPattern=null;this.ended=false;
+  async start(){const generation=this.generation??0;await this.init();if(generation!==(this.generation??0))throw new DOMException('Audio start cancelled','AbortError');if(hasInstruments(this.getProject())&&!this.instruments)throw Error('AUv3 requires the iOS app');await this.instruments?.start(this.getProject());if(generation!==(this.generation??0))throw new DOMException('Audio start cancelled','AbortError');if(this.playing)return;this.playing=true;this.nextTime=this.ctx.currentTime+(hasInstruments(this.getProject())?.08:.015);this.nextStep=0;this.queue=[];this.songPosition=0;this.bus.tracks.forEach(bus=>bus.origin=this.nextTime);this.activePattern=this.getProject().pattern;this.pendingPattern=null;this.ended=false;
     this.worker=new Worker(new URL('./clock.js',import.meta.url));this.worker.onmessage=()=>this.schedule();this.schedule();}
-  schedule(){if(this.ctx)this.midi?.flush(this.ctx);if(!this.playing||this.ended)return;const p=this.getProject();if(this.nextTime<this.ctx.currentTime-0.1)this.nextTime=this.ctx.currentTime+0.03;
+  schedule(){if(this.ctx)this.midi?.flush(this.ctx);if(!this.playing||this.ended)return;const p=this.getProject();this.instruments?.mix(p,p.patterns[p.pattern]);if(this.nextTime<this.ctx.currentTime-0.1)this.nextTime=this.ctx.currentTime+0.03;
     while(this.nextTime<this.ctx.currentTime+0.12){
       if(this.nextStep===0&&this.pendingPattern!==null){this.activePattern=this.pendingPattern;this.pendingPattern=null;}
       const song=p.playMode==='song'?songOrder(p)[this.songPosition]:null,pattern=song?song.pattern:this.activePattern,tracks=p.patterns[pattern],step=this.nextStep;let hits=[];
-      tracks.forEach((t,i)=>{const s=t.steps[step];if(audible(tracks,t)&&s.on&&Math.random()<s.probability){playStep(this.ctx,this.bus.tracks[i]??this.bus,t,s,this.nextTime,stepDuration(p.bpm,p.swing,step),p.bpm);this.midi?.schedule(i,midiNotes(t,s,this.nextTime,stepDuration(p.bpm,p.swing,step),p.bpm,this.bus.tracks[i].origin),this.nextTime);hits.push(i);}const bus=this.bus?.tracks[i];if(bus)modulateStep(bus,t,p.trackFx[i],this.nextTime,stepDuration(p.bpm,p.swing,step),p.bpm);});
+      tracks.forEach((t,i)=>{const s=t.steps[step];if(audible(tracks,t)&&s.on&&Math.random()<s.probability){if(p.instruments?.[i])this.instruments?.schedule(i,midiNotes(t,s,this.nextTime,stepDuration(p.bpm,p.swing,step),p.bpm,this.bus.tracks[i].origin),this.ctx,p);else playStep(this.ctx,this.bus.tracks[i]??this.bus,t,s,this.nextTime,stepDuration(p.bpm,p.swing,step),p.bpm);this.midi?.schedule(i,midiNotes(t,s,this.nextTime,stepDuration(p.bpm,p.swing,step),p.bpm,this.bus.tracks[i].origin),this.nextTime);hits.push(i);}const bus=this.bus?.tracks[i];if(bus)modulateStep(bus,t,p.trackFx[i],this.nextTime,stepDuration(p.bpm,p.swing,step),p.bpm);});
       this.queue.push({time:this.nextTime,step,hits,pattern,song});this.nextTime+=stepDuration(p.bpm,p.swing,step);this.nextStep=(step+1)%STEPS;
       if(this.nextStep===0&&p.playMode==='song'){const next=nextSongPosition(p,this.songPosition);if(next===null){this.ended=true;this.queue.push({time:this.nextTime+projectTail(p),ended:true});break;}this.songPosition=next;}
     }
@@ -148,20 +149,22 @@ export class Engine{
   }
   queuePattern(index){this.pendingPattern=index;}
   tick(){if(!this.ctx)return;this.midi?.flush(this.ctx);let last;while(this.queue.length&&this.queue[0].time<=this.ctx.currentTime)last=this.queue.shift();if(last)this.onStep(last);}
-  async stop(){this.generation=(this.generation??0)+1;this.previewToken=(this.previewToken??0)+1;this.midi?.panic();this.previewVoice=null;this.playing=false;this.worker?.terminate();this.queue=[];if(this.ctx){const closing=this.ctx;this.ctx=null;this.bus=null;await closing.close();}}
-  async preview(t,s){await this.init();const p=this.getProject(),i=p.patterns[p.pattern].indexOf(t),bus=this.bus.tracks[i]??this.bus,start=this.ctx.currentTime+.01,duration=60/p.bpm/4;playStep(this.ctx,bus,t,s,start,duration,p.bpm);modulateStep(bus,t,p.trackFx[i],start,Math.max(duration*4,t.attack+t.decay),p.bpm);}
+  async stop(){this.generation=(this.generation??0)+1;this.previewToken=(this.previewToken??0)+1;this.midi?.panic();const nativeStop=this.instruments?.stop();this.previewVoice=null;this.playing=false;this.worker?.terminate();this.queue=[];if(this.ctx){const closing=this.ctx;this.ctx=null;this.bus=null;await closing.close();}await nativeStop;}
+  async preview(t,s){await this.init();await this.instruments?.start(this.getProject());const p=this.getProject(),i=p.patterns[p.pattern].indexOf(t),bus=this.bus.tracks[i]??this.bus,start=this.ctx.currentTime+.01,duration=60/p.bpm/4;if(p.instruments?.[i]){this.instruments?.schedule(i,midiNotes(t,s,start+.05,duration,p.bpm,start),this.ctx,p);return;}playStep(this.ctx,bus,t,s,start,duration,p.bpm);modulateStep(bus,t,p.trackFx[i],start,Math.max(duration*4,t.attack+t.decay),p.bpm);}
   async previewNote(track,step){
     const token=this.previewToken=(this.previewToken??0)+1,p=this.getProject(),i=p.patterns[p.pattern].indexOf(track);
-    const t=structuredClone(track),s={...step};await this.init();if(token!==this.previewToken)return;
+    const t=structuredClone(track),s={...step};await this.init();await this.instruments?.start(p);if(token!==this.previewToken)return;
     const start=this.ctx.currentTime+.01,bus=this.bus.tracks[i],length=Math.min(.45,Math.max(.08,t.attack+t.decay));
     this.previewVoice?.stop(start);
+    if(p.instruments?.[i]){this.instruments?.schedule(i,[{time:start+.05,note:s.note,velocity:Math.round(s.velocity*127),duration:length}],this.ctx,p);return;}
     this.previewVoice=playNote(this.ctx,bus,t,s,start,length,{bpm:p.bpm,origin:bus.origin??start});
     this.midi?.schedule(i,[{time:start,note:s.note,velocity:Math.max(1,Math.round(s.velocity*127)),duration:length,arp:false}],start);
   }
-  setMaster(v){if(this.ctx)this.bus.gain.gain.setTargetAtTime(v*0.65,this.ctx.currentTime,0.02);}
+  setMaster(v){const p=this.getProject();this.instruments?.mix(p,p.patterns[p.pattern]);if(this.ctx)this.bus.gain.gain.setTargetAtTime(v*0.65,this.ctx.currentTime,0.02);}
   setFx(fx){this.bus?.fx.update(fx);this.bus?.tracks.forEach((bus,i)=>bus.fx.update(this.getProject().trackFx[i]));}
 }
 export async function renderWav(p,mode='pattern'){
+  if(hasInstruments(p))throw Error('WAV export with AUv3 instruments is not supported yet. Export the project instead.');
   const order=mode==='song'?songOrder(p):[{pattern:p.pattern}];
   const settings=p.fx??defaultFx(),trackSettings=p.trackFx??[],tail=projectTail(p),duration=order.length*STEPS*60/p.bpm/4,ctx=new OfflineAudioContext(2,Math.ceil((duration+tail)*44100),44100),bus=createBus(ctx,p.master,settings,trackSettings);let time=0.02;bus.tracks.forEach(track=>track.origin=time);
   for(const {pattern} of order)for(let i=0;i<STEPS;i++){const tracks=p.patterns[pattern];tracks.forEach((t,index)=>{const s=t.steps[i];if(audible(tracks,t)&&s.on&&Math.random()<s.probability)playStep(ctx,bus.tracks[index]??bus,t,s,time,stepDuration(p.bpm,p.swing,i),p.bpm);const track=bus.tracks[index];if(track)modulateStep(track,t,p.trackFx[index],time,stepDuration(p.bpm,p.swing,i),p.bpm);});time+=stepDuration(p.bpm,p.swing,i);}

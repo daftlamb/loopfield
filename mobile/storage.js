@@ -3,7 +3,7 @@ import {projectTail} from '../audio.js';
 export const PROJECT_KEY='loopfield-project-v1';
 export const RECOVERY_KEY='loopfield-ios-recovery-v1';
 export const LIBRARY_KEY='loopfield-ios-library-v1';
-export const MAX_FILE_BYTES=2_000_000;
+export const MAX_FILE_BYTES=16_000_000;
 export function parseProject(text){
   if(typeof text!=='string'||new TextEncoder().encode(text).length>MAX_FILE_BYTES)throw Error('项目文件过大');
   return validateProject(JSON.parse(text));

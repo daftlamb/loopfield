@@ -1,3 +1,4 @@
+import {validateInstruments} from './auv3-model.js';
 import {defaultMod,validateMod} from './modulation.js';
 import {defaultFx,validateFx} from './fx-model.js';
 export const STEPS=32;
@@ -45,6 +46,7 @@ export function makeProject(){
   return {version:1,name:'Riverside sketch',bpm:96,swing:12,master:0.58,fx:defaultFx(),trackFx:Array.from({length:8},defaultFx),patterns:[tracks,clone(tracks),clone(tracks),clone(tracks)],pattern:0,playMode:'pattern',song:[{pattern:0,repeats:1}],songLoop:true};
 }
 export function validateProject(p){
+  if(p)validateInstruments(p);
   const num=(v,a,b)=>typeof v==='number'&&Number.isFinite(v)&&v>=a&&v<=b;
   if(!p||p.version!==1||typeof p.name!=='string'||p.name.length>80||!num(p.bpm,40,220)||!num(p.swing,0,60)||!num(p.master,0,1)||!Number.isInteger(p.pattern)||!Array.isArray(p.patterns)||p.patterns.length<1||p.patterns.length>16||!num(p.pattern,0,p.patterns.length-1))throw Error('项目格式不正确');
   for(const tracks of p.patterns){

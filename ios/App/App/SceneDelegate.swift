@@ -26,6 +26,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 }
 
 final class LoopfieldViewController: CAPBridgeViewController {
+    private var instrumentHost: AUInstrumentHost?
     private var observers: [NSObjectProtocol] = []
     private var lastShake: TimeInterval = -.infinity
     private var paletteStatusStyle: UIStatusBarStyle = .darkContent
@@ -73,6 +74,12 @@ final class LoopfieldViewController: CAPBridgeViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         webView?.scrollView.bounces = false
+        instrumentHost = AUInstrumentHost(owner: self, webView: webView)
+        if let instrumentHost { webView?.configuration.userContentController.addScriptMessageHandler(instrumentHost, contentWorld: .page, name: "loopfieldAU") }
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("--loopfield-au-probe") { instrumentHost?.runAudioDiagnostic() }
+        if ProcessInfo.processInfo.arguments.contains("--loopfield-au-list") { instrumentHost?.writeInstrumentDiagnostic() }
+        #endif
         UIApplication.shared.applicationSupportsShakeToEdit = false
         webView?.configuration.userContentController.add(appearanceHandler, name: "loopfieldAppearance")
         webView?.configuration.userContentController.add(appearanceHandler, name: "loopfieldVisual")
@@ -95,6 +102,7 @@ final class LoopfieldViewController: CAPBridgeViewController {
         })
     }
     deinit {
+        webView?.configuration.userContentController.removeScriptMessageHandler(forName: "loopfieldAU", contentWorld: .page)
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "loopfieldAppearance")
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "loopfieldVisual")
         for observer in observers { NotificationCenter.default.removeObserver(observer) }

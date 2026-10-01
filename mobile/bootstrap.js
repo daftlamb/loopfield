@@ -1,3 +1,5 @@
+import {installAUv3} from './auv3.js';
+import {hasInstruments} from '../auv3-model.js';
 import {Capacitor,SystemBars} from '@capacitor/core';
 import {App} from '@capacitor/app';
 import {Preferences} from '@capacitor/preferences';
@@ -41,7 +43,7 @@ async function start(){
     updateQuick();
   });
   
-  const pause=()=>{app.pauseForBackground().catch(()=>{});persist();};
+  const pause=()=>{app.pauseForBackground().catch(()=>{});app.captureInstrumentState().catch(()=>{}).finally(persist);};
   document.addEventListener('visibilitychange',()=>{if(document.hidden)pause();});
   window.addEventListener('pagehide',pause);
   window.addEventListener('loopfield-interruption',pause);
@@ -77,7 +79,7 @@ async function start(){
     input.oninput=()=>app.editTrackParameter(key,+input.value);$('#quickParameters').append(field);
     return {key,input,output:field.querySelector('output'),format};
   });
-  function updateQuick(){const t=app.getTrack();$('#quickName').textContent=String(t.index+1).padStart(2,'0')+' / '+t.name;for(const q of quick){q.input.value=t[q.key];q.output.textContent=q.format(t[q.key]);q.input.disabled=q.key==='cutoff'&&['hat','snare'].includes(t.kind);}}
+  function updateQuick(){const t=app.getTrack();$('#quickName').textContent=String(t.index+1).padStart(2,'0')+' / '+t.name;for(const q of quick){q.input.value=t[q.key];q.output.textContent=q.format(t[q.key]);q.input.disabled=(app.hasInstrument(t.index)&&q.key!=='volume')||(q.key==='cutoff'&&['hat','snare'].includes(t.kind));}}
   window.addEventListener('loopfield-editor-changed',updateQuick);updateQuick();
   const stepLabels=[...$('.stepedit').querySelectorAll('label')];
   function showStepControl(){
@@ -101,6 +103,7 @@ async function start(){
   installHelp({locale:helpLocale,shake,typography,projects:factoryProjects,async loadFactory(id){
     const loaded=makeFactoryProject(id);
     if(libraryUnavailable||library.length>=50)throw Error(locale.language==='zh'?'无法保存当前工程副本，请先导出备份并整理副本。':'Cannot save a safety copy. Export your project and make space in saved copies first.');
+    await app.captureInstrumentState();
     const project=app.getProject(),next=[...library,{id:crypto.randomUUID(),name:project.name,savedAt:Date.now(),project}];
     await write(LIBRARY_KEY,JSON.stringify(next));library=next;localSet(LIBRARY_KEY,JSON.stringify(next));
     await app.openProject(loaded);await persist();app.setMobileTab('sequence');
@@ -110,6 +113,7 @@ async function start(){
     await Preferences.set({key:LANGUAGE_KEY,value:next});
     localSet(LANGUAGE_KEY,next);helpLocale.language=next;window.dispatchEvent(new Event('loopfield-help-language-changed'));
   }});
+  await installAUv3(app);
   installChoiceControls();
   const landscape=matchMedia('(orientation:landscape)');
   const updateVisualMode=()=>{
@@ -138,9 +142,10 @@ async function start(){
   saveCopy.onclick=async()=>{
     if(libraryUnavailable){app.toast('请先导出当前项目，工程列表需要恢复');return;}
     if(library.length>=50){app.toast('已保存 50 个副本，请导出项目备份');return;}
-    const project=app.getProject(),next=[...library,{id:crypto.randomUUID(),name:project.name,savedAt:Date.now(),project}];
     saveCopy.disabled=true;
-    try{await write(LIBRARY_KEY,JSON.stringify(next));localSet(LIBRARY_KEY,JSON.stringify(next));library=next;renderLibrary();app.toast('副本已保存');}catch{app.toast('保存副本失败，请导出项目');}finally{saveCopy.disabled=false;}
+    try{await app.captureInstrumentState();
+    const project=app.getProject(),next=[...library,{id:crypto.randomUUID(),name:project.name,savedAt:Date.now(),project}];
+    await write(LIBRARY_KEY,JSON.stringify(next));localSet(LIBRARY_KEY,JSON.stringify(next));library=next;renderLibrary();app.toast('副本已保存');}catch{app.toast('保存副本失败，请导出项目');}finally{saveCopy.disabled=false;}
   };
   async function shareFile(blob,name){
     if(!native){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),10000);return;}
@@ -151,15 +156,16 @@ async function start(){
     finally{await Filesystem.deleteFile({directory:Directory.Cache,path:'exports/'+name}).catch(()=>{});}
   }
   $('#save').onclick=async()=>{
-    $('#save').disabled=true;try{const p=app.getProject();await shareFile(new Blob([JSON.stringify(p,null,2)],{type:'application/json'}),safeFilename(p.name,'json'));}catch{app.toast('项目导出未完成，可重试');}finally{$('#save').disabled=false;}
+    $('#save').disabled=true;try{await app.captureInstrumentState();const p=app.getProject();await shareFile(new Blob([JSON.stringify(p,null,2)],{type:'application/json'}),safeFilename(p.name,'json'));}catch{app.toast('项目导出未完成，可重试');}finally{$('#save').disabled=false;}
   };
   $('#file').onchange=async()=>{
     const file=$('#file').files[0];if(!file)return;
-    try{if(file.size>MAX_FILE_BYTES)throw Error('项目文件不能超过 2 MB');const project=parseProject(await file.text());await app.openProject(project);await persist();app.toast('项目已导入 · 可撤销恢复');}
+    try{if(file.size>MAX_FILE_BYTES)throw Error('Project file cannot exceed 16 MB');const project=parseProject(await file.text());await app.openProject(project);await persist();app.toast('项目已导入 · 可撤销恢复');}
     catch(error){app.toast('无法导入：'+error.message);}finally{$('#file').value='';}
   };
   $('#export').onclick=async()=>{
     const project=app.getProject(),mode=$('#exportMode').value,budget=exportBudget(project,mode);
+    if(hasInstruments(project)){app.toast('AUv3 WAV export is not available yet. Export the project instead.');return;}
     if(!budget.allowed){app.toast('第一版支持含尾音 3 分钟以内的 WAV，请缩短编排或导出 Pattern');return;}
     const b=$('#export');b.disabled=true;b.textContent='正在渲染…';
     try{await app.pauseForBackground();await persist();const wav=await app.renderWav(project,mode);await shareFile(wav,safeFilename(project.name+'-'+mode,'wav'));}

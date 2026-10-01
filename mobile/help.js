@@ -11,6 +11,7 @@ export function installHelp({locale,shake,changeLanguage,typography,projects,loa
  ['VALUES','参数切换','Tap a choice or use the left and right arrows. Hold a pitch arrow to move through notes.','点选选项或用左右箭头切换。长按音高箭头可连续调节。'],
  ['SONG','编排','Arrange patterns and repeats, then select SONG. Stop playback to edit the arrangement.','设置乐段顺序和重复次数，再选歌曲模式播放。停止播放后可修改编排。'],
  ['SOUND / FX','音色 / 效果','Choose a voice and shape its sound. Apply effects to MASTER or an individual track.','选择音色并调整参数。效果可作用于总线或单独音轨。'],
+ ['AUv3','AUv3 音源','In SOUND, tap INSTRUMENT to choose an installed AUv3 instrument, then OPEN for its controls. Each track shares its instrument across patterns. Plugin state saves with the project; keep the plugin app installed. LEVEL, PAN, MUTE and SOLO apply. Plugin audio bypasses Loopfield FX and sound LFOs; WAV export is unavailable for projects using AUv3. Plugin tempo sync and audio-reactive visuals are not connected yet.','在音色页点 INSTRUMENT 选择已安装的 AUv3 音源，点 OPEN 打开插件。每条轨道在不同乐段间共用一个插件，状态随工程保存；请保留插件 App。音量、声像、静音和独奏有效。插件声音暂不经过内置效果与音色 LFO，含插件的工程暂不支持导出 WAV。插件内部节拍同步和声音驱动画面暂未接入。'],
  ['PROJECT','工程','Tap the project name above to save a copy, import or export. Your current edits save automatically.','点顶部工程名称可保存副本、导入或导出。当前编辑会自动保存。']
  ];
  let busy=false;
