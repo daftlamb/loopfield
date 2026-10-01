@@ -1,6 +1,6 @@
 # Loopfield 1.0 (10) · Editing polish
 
-Uploaded successfully to App Store Connect on 2026-10-01 at 12:06 CST. Xcode reported `Upload succeeded` and `EXPORT SUCCEEDED`; Apple began package processing. External Tester group assignment is pending because the App Store Connect web session requires login. No external-review or App Store review submission was made in this upload step.
+Uploaded successfully to App Store Connect on 2026-10-01 at 12:06 CST. Xcode reported `Upload succeeded` and `EXPORT SUCCEEDED`. Apple finished processing, and build 1.0 (10) is now **Testing** in the external **Tester** group (35 invitations). English What to Test notes were saved and automatic tester notification was enabled. The existing public link remains https://testflight.apple.com/join/YdWzgkBV. No App Store release was submitted. Status evidence: `../Loopfield-Releases/1.0-10/testflight-live.png`.
 
 - Matching play / numbered / page selector widths.
 - Track-scoped last-pitch continuation for new notes; slightly faster pitch drag.
