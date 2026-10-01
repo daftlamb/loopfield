@@ -130,3 +130,9 @@ Capacitor CLI 开发依赖有 3 项 moderate audit 提示；未做破坏性强�
 
 - Tap a top-row track number to select it; hold for 450 ms to toggle Solo; double-tap within 300 ms to toggle Mute. Repeat to disable. Multiple tracks can be soloed; mute takes priority. Solo shows a small S, muted tracks are dimmed. Edits save automatically and support Undo.
 - Tools closes with an icon-only ×, retaining the shared 44 px touch target.
+
+## Build 11 · Pixel unicorn (2026-10-01)
+
+- Replaced the text app icon with the approved pixel unicorn (ivory / lavender / lime on black), rendered with built-in image_gen and prepared as an opaque 1024 px PNG.
+- Includes Track Solo / Mute shortcuts, bilingual guide updates and icon-only Tools close.
+- Release archive and upload succeeded at 12:55 CST; Apple processing is underway.
