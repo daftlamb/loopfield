@@ -1,6 +1,6 @@
 # Loopfield 1.0 (11) · Pixel unicorn and track gestures
 
-Release archive succeeded. Uploaded successfully on 2026-10-01 at 12:55 CST (`Upload succeeded`, `EXPORT SUCCEEDED`). App Store Connect confirms 1.0 (11) is Processing; external testing is not yet confirmed.
+Release archive succeeded. Uploaded successfully on 2026-10-01 at 12:55 CST (`Upload succeeded`, `EXPORT SUCCEEDED`). App Store Connect confirms 1.0 (11) is **Testing** in the external **Tester** group (35 invitations). English What to Test notes were saved and automatic notification enabled. Existing public link: https://testflight.apple.com/join/YdWzgkBV. Evidence: `../Loopfield-Releases/1.0-11/testflight-status.png`.
 
 - New pixel unicorn icon, approved PIXEL concept; 1024 x 1024 opaque PNG.
 - Hold a top-row track for Solo; double-tap for Mute. Single tap selects, movement cancels holds, edits save and support Undo.

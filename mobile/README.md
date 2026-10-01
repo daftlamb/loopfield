@@ -135,4 +135,4 @@ Capacitor CLI 开发依赖有 3 项 moderate audit 提示；未做破坏性强�
 
 - Replaced the text app icon with the approved pixel unicorn (ivory / lavender / lime on black), rendered with built-in image_gen and prepared as an opaque 1024 px PNG.
 - Includes Track Solo / Mute shortcuts, bilingual guide updates and icon-only Tools close.
-- Release archive and upload succeeded at 12:55 CST; Apple processing is underway.
+- Release archive and upload succeeded at 12:55 CST. Build 11 is now Testing in the external Tester group (35 invitations); release notes saved and automatic notification enabled.
