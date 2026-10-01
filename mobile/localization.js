@@ -1,3 +1,4 @@
+import {displayCopy} from './ui-copy.js';
 import {english} from './english.js';
 export const LANGUAGE_KEY='loopfield-language-v1';
 export const normalizeLanguage=value=>value==='zh'?'zh':'en';
@@ -9,7 +10,7 @@ export function installLocalization(initialLanguage){
  const textSources=new WeakMap(),attributeSources=new WeakMap();
  const excluded='script,style,textarea,[data-no-i18n],#shellProject,#quickName,#soundName,#modTrack,#modTitle,.libraryRow>span';
  const attributes=['aria-label','title','placeholder'];
- function value(source){return language==='en'?english(source):source;}
+ function value(source){return language==='en'?displayCopy(english(source)):source;}
  function text(node){
   if(!node.parentElement||node.parentElement.closest(excluded))return;
   const current=node.data,previous=textSources.get(node);

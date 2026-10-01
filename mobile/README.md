@@ -104,3 +104,13 @@ Capacitor CLI 开发依赖有 3 项 moderate audit 提示；未做破坏性强�
 - Release archive and App Store Connect distribution-signed IPA export succeeded for 1.0 (8); no upload or review submission was performed.
 - AUv3 hosting is deferred by user decision. Next round should connect native AVAudioEngine/AVAudioUnit hosting, plugin discovery and editor presentation, MIDI scheduling, effect routing and saved plugin state. The current Web Audio graph is not an AUv3 host. Reference: https://developer.apple.com/documentation/audiotoolbox/incorporating-audio-effects-and-instruments
 - Font source: https://github.com/google/fonts/tree/main/ofl/doto
+
+## Build 9 · PIXEL / DOTO themes (2026-10-01)
+
+- The operating interface is always English. The existing language preference now controls help copy only; user-created project and track names remain untouched. Settings exposes HELP LANGUAGE (EN / ZH) and THEME (PIXEL / DOTO).
+- Both themes use the same panel geometry. DOTO uses 14px main labels / 12px dense labels, a matching original 27-icon dot matrix set and drawn dot arrows. PIXEL keeps its original icon set. All help copy follows the theme; Chinese help uses Loop Pixel for the entire paragraph because Doto has no CJK glyphs.
+- Musical accidentals display as Db / Eb / Gb / Ab / Bb, with unchanged MIDI pitches. Unsupported arrows and infinity use drawn controls or ASCII equivalents. Compact synchronized periods display as 0.5b, 1b, etc.
+- Slider handles are 8px with their larger touch regions preserved. Page selectors, mode selectors and main actions share 44px heights and a consistent selected fill. FX labels/values use two short rows to avoid collisions.
+- Validation: 51 Node tests passed, including every MIDI pitch from 24–96 mapped to the expected enharmonic spelling. Browser checks at 375×667 and 393×759 covered both themes, English operating UI with Chinese help, persistent selection, pitch edits/undo, Sound, Song, FX, tools and LFO settings. Main controls had no horizontal text overflow. Release archive for build 9 succeeded.
+
+- Build 9 development-signed IPA exported and installed successfully on the connected iPhone 17 Pro Max (mog), 2026-10-01. App bundle version and final theme CSS were checked before installation.

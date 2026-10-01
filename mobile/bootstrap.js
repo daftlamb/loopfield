@@ -19,7 +19,8 @@ const write=createWriter(value=>Preferences.set(value),()=>notify('保存失败�
 async function start(){
   if(native)document.documentElement.classList.add('native-app');
   const languagePreference=await Preferences.get({key:LANGUAGE_KEY}).catch(()=>({value:localGet(LANGUAGE_KEY)}));
-  const locale=installLocalization(languagePreference.value);
+  const locale=installLocalization('en');
+  const helpLocale={language:normalizeLanguage(languagePreference.value)};
   const saved=await Preferences.get({key:PROJECT_KEY}).catch(()=>({value:null}));
   const recovered=restoreLatest([saved.value,localGet(RECOVERY_KEY),localGet(PROJECT_KEY)]);
   if(recovered)localSet(PROJECT_KEY,JSON.stringify(recovered.project));
@@ -87,7 +88,8 @@ async function start(){
   // iPad keeps the same app navigation; move infrequent actions regardless of viewport width.
   for(const id of ['random','clear','newPattern','copyPattern'])$('#mobileActions').append($('#'+id));
   $('.patternBar').append($('#undo'));$('#openTools').textContent='工具';
-  $('.stepPages span').textContent='长按上下调值';
+  $('.stepPages span').textContent='HOLD + DRAG';
+  $('#modes [data-mode=ratchet]').textContent='RATCH';
   $('.midiPanel').hidden=true;
   $('.fieldNote').remove();$('.visualFooter').remove();
   $('.visualPanel .sectionhead>span').textContent='画面 / FIELD';
@@ -96,7 +98,7 @@ async function start(){
   let library=[],libraryUnavailable=true;
   const shake=installShakePalette();
   const typography=installTypography();
-  installHelp({locale,shake,typography,projects:factoryProjects,async loadFactory(id){
+  installHelp({locale:helpLocale,shake,typography,projects:factoryProjects,async loadFactory(id){
     const loaded=makeFactoryProject(id);
     if(libraryUnavailable||library.length>=50)throw Error(locale.language==='zh'?'无法保存当前工程副本，请先导出备份并整理副本。':'Cannot save a safety copy. Export your project and make space in saved copies first.');
     const project=app.getProject(),next=[...library,{id:crypto.randomUUID(),name:project.name,savedAt:Date.now(),project}];
@@ -106,7 +108,7 @@ async function start(){
   },async changeLanguage(language){
     const next=normalizeLanguage(language);
     await Preferences.set({key:LANGUAGE_KEY,value:next});
-    localSet(LANGUAGE_KEY,next);locale.setLanguage(next);
+    localSet(LANGUAGE_KEY,next);helpLocale.language=next;window.dispatchEvent(new Event('loopfield-help-language-changed'));
   }});
   installChoiceControls();
   const landscape=matchMedia('(orientation:landscape)');

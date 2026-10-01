@@ -1,3 +1,16 @@
+# Loopfield 1.0 (9) · Theme refinement
+
+Prepared 2026-10-01. Not uploaded or submitted.
+
+- English operating interface, independent EN / ZH help.
+- Matching PIXEL and DOTO visual themes, original dot icons, larger Doto text, smaller slider handles and consistent action heights.
+- Flats replace musical sharp glyphs without changing note pitches.
+- Release archive: `../Loopfield-Releases/1.0-9/Loopfield.xcarchive`.
+- Preview screenshots: `../Loopfield-Releases/1.0-9/doto-theme.jpg` and `pixel-theme.jpg`.
+- 51 tests passed; both themes and small-screen layouts verified in the browser.
+
+---
+
 # Loopfield 1.0 (8) · Release candidate
 
 Prepared 2026-10-01. Build 8 is not uploaded to TestFlight or submitted to App Review.
@@ -70,3 +83,5 @@ xcodebuild -exportArchive \
 ```
 
 After upload, verify processing status in TestFlight before adding a build to a testing group. Tester recipients and external review contact information have not been provided; no invitations have been sent and no public testing link has been created.
+
+- Build 9 development-signed IPA exported and installed successfully on the connected iPhone 17 Pro Max (mog), 2026-10-01. App bundle version and final theme CSS were checked before installation.

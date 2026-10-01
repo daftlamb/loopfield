@@ -31,7 +31,7 @@ export function installChoiceControls(){
         if(isSegmented){options.forEach((option,index)=>{const b=document.createElement('button');b.type='button';b.textContent=option.text;b.disabled=select.disabled||option.disabled;b.onclick=()=>choose(index);box.append(b);});}
         else {
           const prev=document.createElement('button'),value=document.createElement('span'),next=document.createElement('button');
-          prev.type=next.type='button';prev.textContent='‹';next.textContent='›';value.className='choiceValue';value.setAttribute('aria-live','polite');
+          prev.type=next.type='button';prev.className='choiceArrow previous';next.className='choiceArrow next';value.className='choiceValue';value.setAttribute('aria-live','polite');
           const zh=document.documentElement.lang==='zh-CN';prev.setAttribute('aria-label',(zh?'上一项 ':'Previous ')+label);next.setAttribute('aria-label',(zh?'下一项 ':'Next ')+label);
           function move(direction){let i=select.selectedIndex;for(let n=0;n<options.length;n++){i+=direction;if(select.id==='note'&&(i<0||i>=options.length))return;i=(i+options.length)%options.length;if(!options[i].disabled){choose(i);return;}}}
           for(const [b,direction] of [[prev,-1],[next,1]]){

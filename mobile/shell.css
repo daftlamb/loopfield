@@ -131,11 +131,62 @@ html[lang=zh-CN] .patternBar{right:94px}
 .libraryRow{font-size:var(--ui-size)}
 .factoryProjects h2{font-size:var(--ui-size);font-weight:normal;margin:24px 0 8px}
 .factoryRow{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
-.factoryRow>div{min-width:0;flex:1}.factoryRow strong{font-size:14px;font-weight:normal}.factoryRow small{display:block;margin-top:6px;color:var(--muted);font:12px/1.5 system-ui,sans-serif}
+.factoryRow>div{min-width:0;flex:1}.factoryRow strong{font-size:14px;font-weight:normal}.factoryRow small{display:block;margin-top:6px;color:var(--muted);font-size:var(--ui-size);line-height:1.5}
 .factoryRow button{min-width:60px;min-height:44px;border:1px solid var(--line)}
-#factoryMessage:empty{display:none}#factoryMessage{font:12px/1.6 system-ui,sans-serif}
+#factoryMessage:empty{display:none}#factoryMessage{font-size:var(--ui-size);line-height:1.6}
 @font-face{font-family:'Doto';src:url('./fonts/doto.ttf') format('truetype');font-weight:100 900;font-display:swap}
 html[data-typeface=dots] body,html[data-typeface=dots] button,html[data-typeface=dots] input,html[data-typeface=dots] select{font-family:'Doto','Loop Pixel',monospace;font-weight:700;font-variation-settings:'ROND' 100}
 html[data-typeface=dots] .shellWordmark{font-size:20px;font-weight:800}
-html[data-typeface=dots] .shellNote,html[data-typeface=dots] .quickGuide dd{font-family:system-ui,sans-serif;font-weight:400}
+
 @media(max-height:740px){.quickSound{flex-basis:80px}.quickTitle,.quickTitle button{min-height:32px}}
+
+/* Theme tokens change appearance, never panel geometry. */
+:root{--ui-font:'Loop Pixel',monospace;--ui-size:12px;--detail-size:10px;--note-size:18px;--ui-weight:400;--thumb-size:8px}
+html[data-typeface=dots]{--ui-font:'Doto','Loop Pixel',monospace;--ui-size:14px;--detail-size:12px;--note-size:20px;--ui-weight:750}
+html body,html button,html input,html select,html textarea,html output{font-family:var(--ui-font);font-weight:var(--ui-weight)}
+html[data-typeface=dots] body,html[data-typeface=dots] button,html[data-typeface=dots] input,html[data-typeface=dots] select{font-family:var(--ui-font);font-weight:var(--ui-weight)}
+html .shellNote,html .quickGuide dd,html .factoryRow small,html #factoryMessage,html .modHelp,html .songHelp{font-family:var(--ui-font);font-size:var(--ui-size);font-weight:var(--ui-weight);line-height:1.7}
+html .helpCopy[lang=zh-CN],html[data-typeface=dots] .helpCopy[lang=zh-CN]{font-family:'Loop Pixel',monospace;font-size:12px;font-weight:400;font-variation-settings:normal}
+html .helpCopy[lang=zh-CN] dt,html .helpCopy[lang=zh-CN] dd{font-family:inherit;font-size:inherit;font-weight:inherit}
+html[data-typeface=dots] .pixelGlyph{display:none}
+html[data-typeface=dots] .dotGlyph{display:inline!important}
+html .shellWordmark,html[data-typeface=dots] .shellWordmark{font-size:20px;line-height:24px;letter-spacing:0}
+#shellProject,.transportInfo,.libraryRow,.quickTitle,.quickTitle button,.param>div{font-size:var(--ui-size)}
+.step small,.stepPages span,.libraryRow small{font-size:var(--detail-size)}
+html .step .value,html .stepedit .choiceValue{font-size:var(--note-size)}
+html .sequencePanel .gridtools .tabs button{font-size:var(--detail-size)}
+.choiceArrow::before{content:'';display:block;width:6px;height:6px;border-top:1px solid currentColor;border-right:1px solid currentColor;transform:rotate(45deg)}
+.choiceArrow.previous::before{transform:rotate(-135deg)}
+html[data-typeface=dots] .choiceArrow::before{border-style:dotted;border-width:2px;width:7px;height:7px}
+html input[type=range]::-webkit-slider-thumb,html #modDialog input[type=range]::-webkit-slider-thumb{width:var(--thumb-size);height:var(--thumb-size);margin-top:-3px;border:0;border-radius:0}
+html input[type=range]::-moz-range-thumb,html #modDialog input[type=range]::-moz-range-thumb{width:var(--thumb-size);height:var(--thumb-size);border:0;border-radius:0}
+/* Keep full-height hit areas around the smaller visual handles. */
+html input[type=range]{min-height:32px}
+html .choiceControl.segmented{flex-wrap:nowrap;gap:4px}
+html .choiceControl.segmented button,html .stepPages button,html .soundhead>button,html .factoryRow button{height:44px;min-height:44px;padding:0 10px;display:inline-flex;align-items:center;justify-content:center;line-height:1}
+html .helpLanguage{gap:8px;flex-wrap:nowrap;min-height:48px}
+html .helpLanguage>.choiceControl{flex-shrink:0}
+html .helpLanguage .segmented button{width:64px;min-width:64px}
+html .sequencePanel .gridtools,html .sequencePanel .gridtools .tabs,html .sequencePanel .gridtools .tabs button{height:44px;min-height:44px}
+html .stepPages button{min-width:64px}
+html .soundhead>button{min-width:64px}
+html .fxParam>span{flex-direction:column;align-items:flex-start;gap:1px;line-height:15px;min-height:31px;font-size:var(--detail-size)}
+html .fxParam output{font-size:var(--detail-size);line-height:15px}
+html #quickParameters label>span{font-size:var(--detail-size);gap:2px}
+html #quickParameters output{font-size:var(--detail-size)}
+html .fxRow{padding:2px 0;min-height:66px;gap:6px;grid-template-columns:76px repeat(3,minmax(0,1fr))}
+html .fxToggle{font-size:var(--detail-size)}
+html .fxRoute{font-size:var(--detail-size);letter-spacing:0}
+html .sceneSettings label{font-size:var(--ui-size)}
+html .factoryRow strong{font-size:var(--ui-size)}
+html #modQuick button{min-height:36px;height:36px}
+html #modQuick{height:36px}
+html .choiceControl.segmented button[aria-pressed=true],html .tabs button.active,html #tracks .track.active,html .stepPages button[aria-pressed=true],html .soundhead>button.active{background:var(--ink);color:var(--paper)}
+@media(max-width:390px){html .stepPages span{max-width:92px;text-align:right;line-height:1.2}html .fxRow{min-height:62px}html .patternBar{right:100px}html .patternBar>button{padding:0 3px}}
+html[data-typeface=dots] .choiceArrow::before{border:0;width:2px;height:2px;border-radius:50%;background:currentColor;box-shadow:-3px -3px currentColor,-6px -6px currentColor,-3px 3px currentColor,-6px 6px currentColor;transform:translateX(3px)}
+html[data-typeface=dots] .choiceArrow.previous::before{transform:translateX(-3px) rotate(180deg)}
+.patternBar .uiIcon{width:16px;height:16px}
+html .quickSound{flex:0 0 96px;min-height:96px;max-height:96px}
+html #quickParameters label>span{line-height:18px}
+@media(max-height:740px){html .quickSound{flex-basis:86px;min-height:86px;max-height:86px}}
+@media(min-width:761px){html .quickSound{flex-basis:112px;min-height:112px;max-height:112px}}
