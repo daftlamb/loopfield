@@ -125,3 +125,8 @@ Capacitor CLI 开发依赖有 3 项 moderate audit 提示；未做破坏性强�
 - 53 Node tests passed, including track-scoped pitch continuation, existing-note preservation, undo-context reset and drag intervals. Browser verified actual Db4 continuation, undo, matched widths, all three palettes and keyboard focus with no outline and zero icon centring offset. Release archive passed.
 - Development-signed build 10 exported and installed on the connected iPhone 17 Pro Max (mog).
 - Build 10 uploaded successfully on 2026-10-01 at 12:06 CST and is now Testing in the external Tester group (35 invitations). English release notes were saved and automatic tester notification was enabled. Public link: https://testflight.apple.com/join/YdWzgkBV.
+
+## Track shortcuts
+
+- Tap a top-row track number to select it; hold for 450 ms to toggle Solo; double-tap within 300 ms to toggle Mute. Repeat to disable. Multiple tracks can be soloed; mute takes priority. Solo shows a small S, muted tracks are dimmed. Edits save automatically and support Undo.
+- Tools closes with an icon-only ×, retaining the shared 44 px touch target.

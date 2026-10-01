@@ -7,7 +7,7 @@ export function installHelp({locale,shake,changeLanguage,typography,projects,loa
  ['SEQUENCE','音序','Tap a step to switch it on or off. New notes continue your last edited pitch on that track. Hold and drag up or down to edit the selected parameter. Each pattern has two pages of 16 steps.','点按格子开关音符，新开启的音符沿用当前音轨上次编辑的音高。长按后上下拖动可调整当前参数。每个乐段共 32 步，分为两页。'],
  ['RANDOM','随机参数','Choose NOTE, VEL, CHANCE, RATCH or GATE, then open TOOLS and tap RANDOM. It changes that parameter on the current track. Use UNDO to restore it.','先选择音高、力度、概率、连击或门限，再打开工具点随机按钮；仅影响当前音轨。点撤销可恢复。'],
  ['NOTES','音名','Accidentals use flats: Db, Eb, Gb, Ab and Bb. Pitch and playback stay unchanged.','变化音使用降号记法，例如降 D、降 E；音高与播放保持不变。'],
- ['TRACKS','音轨','Numbers 1–8 select the track you edit. All unmuted tracks play together.','数字 1–8 切换编辑音轨。所有未静音的音轨一起播放。'],
+ ['TRACKS','音轨','Tap 1–8 to select a track. Hold a track number to toggle SOLO; double-tap it to toggle MUTE. Multiple tracks can be soloed together. S marks solo; dimmed numbers mark mute. Repeat the gesture to turn it off. Mute takes priority over solo.','单击顶部数字 1–8 切换编辑音轨。长按数字开启或取消独奏，双击开启或取消静音。可同时独奏多条音轨；独奏显示 S，静音时数字变暗。重复同一手势即可取消。静音优先于独奏。'],
  ['VALUES','参数切换','Tap a choice or use the left and right arrows. Hold a pitch arrow to move through notes.','点选选项或用左右箭头切换。长按音高箭头可连续调节。'],
  ['SONG','编排','Arrange patterns and repeats, then select SONG. Stop playback to edit the arrangement.','设置乐段顺序和重复次数，再选歌曲模式播放。停止播放后可修改编排。'],
  ['SOUND / FX','音色 / 效果','Choose a voice and shape its sound. Apply effects to MASTER or an individual track.','选择音色并调整参数。效果可作用于总线或单独音轨。'],
