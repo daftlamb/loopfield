@@ -1,6 +1,6 @@
 # Loopfield 1.0 (10) · Editing polish
 
-Prepared 2026-10-01. Not uploaded or submitted.
+Uploaded successfully to App Store Connect on 2026-10-01 at 12:06 CST. Xcode reported `Upload succeeded` and `EXPORT SUCCEEDED`; Apple began package processing. External Tester group assignment is pending because the App Store Connect web session requires login. No external-review or App Store review submission was made in this upload step.
 
 - Matching play / numbered / page selector widths.
 - Track-scoped last-pitch continuation for new notes; slightly faster pitch drag.
