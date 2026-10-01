@@ -1,8 +1,8 @@
-<!doctype html><html><body><h1>Voice render validation</h1><pre id="result">Rendering…</pre><script type="module">
+<!doctype html><html><meta charset="utf-8"><body><h1>Voice render validation</h1><pre id="result">Rendering…</pre><script type="module">
 import {makeProject,selectVoice} from '../model.js';
 import {playStep} from '../audio.js';
 const results=[];
-for(const kind of ['bell','pluck','pad','bass'])for(const ratchet of [1,4])for(const gate of [0,100]){
+for(const kind of ['bell','pluck','pad','bass','vowel','va'])for(const ratchet of [1,4])for(const gate of [0,100]){
  const ctx=new OfflineAudioContext(2,44100*4,44100),input=ctx.createGain();input.connect(ctx.destination);
  const t=makeProject().patterns[0][0];selectVoice(t,kind);
  playStep(ctx,{input},t,{...t.steps[0],on:true,note:kind==='bass'?36:60,velocity:.8,ratchet,gate},.02,.25,120);

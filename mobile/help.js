@@ -1,4 +1,4 @@
-export function installHelp({locale,shake,changeLanguage}){
+export function installHelp({locale,shake,changeLanguage,typography,projects,loadFactory}){
  const button=document.querySelector('#shellHelp');
  const panel=document.createElement('dialog');panel.id='helpDialog';document.body.append(panel);
  const guides=[
@@ -16,9 +16,17 @@ export function installHelp({locale,shake,changeLanguage}){
   const zh=locale.language==='zh';
   panel.innerHTML=`<div class="dialogHead"><span>${zh?'设置与帮助':'SETTINGS / GUIDE'}</span><button id="closeHelp" aria-label="${zh?'关闭帮助':'Close help'}">×</button></div>
    <div class="helpSettings" data-no-i18n><div class="helpLanguage"><span>${zh?'语言':'LANGUAGE'}</span><div class="choiceControl segmented" role="group" aria-label="Language / 语言"><button data-language="en" aria-pressed="${!zh}">ENGLISH</button><button data-language="zh" aria-pressed="${zh}">中文</button></div></div>
+   <div class="helpLanguage"><span>${zh?'字体':'TYPEFACE'}</span><div class="choiceControl segmented" role="group" aria-label="Typeface"><button data-typeface="pixel" aria-pressed="${typography.value==='pixel'}">PIXEL</button><button data-typeface="dots" aria-pressed="${typography.value==='dots'}">DOTO</button></div></div>
    <label class="shakeSetting"><span>${zh?'摇一摇切换配色':'SHAKE TO CHANGE PALETTE'}</span><input id="shakePalette" type="checkbox" ${shake.enabled?'checked':''}></label>
-   <p class="shellNote">${zh?'摇动 iPhone 可依次切换五套配色，不影响播放。':'Shake your iPhone to cycle through five palettes without interrupting playback.'}</p><p id="languageMessage" role="status"></p></div><dl class="quickGuide" data-no-i18n>${guides.map(g=>`<dt>${g[zh?1:0]}</dt><dd>${g[zh?3:2]}</dd>`).join('')}</dl>`;
+   <p class="shellNote">${zh?'摇动 iPhone 可依次切换五套配色，不影响播放。':'Shake your iPhone to cycle through five palettes without interrupting playback.'}</p><p id="languageMessage" role="status"></p></div><section class="factoryProjects" data-no-i18n><h2>${zh?'预制工程':'PROJECTS TO PLAY'}</h2><p class="shellNote">${zh?'载入前自动保存当前工程副本；载入后点播放试听。':'Your current project is saved as a copy before loading. Tap Play to listen.'}</p>${projects.map(p=>`<div class="factoryRow"><div><strong>${p.name}</strong><small>${p.bpm} BPM · ${zh?p.zh:p.summary}</small></div><button data-factory="${p.id}" aria-label="${zh?'载入':'Load'} ${p.name}">${zh?'载入':'LOAD'}</button></div>`).join('')}<p id="factoryMessage" role="status"></p></section><dl class="quickGuide" data-no-i18n>${guides.map(g=>`<dt>${g[zh?1:0]}</dt><dd>${g[zh?3:2]}</dd>`).join('')}</dl>`;
   panel.querySelector('#closeHelp').onclick=()=>panel.close();
+  for(const b of panel.querySelectorAll('[data-typeface]'))b.onclick=()=>{typography.set(b.dataset.typeface);for(const choice of panel.querySelectorAll('[data-typeface]'))choice.setAttribute('aria-pressed',String(choice.dataset.typeface===typography.value));};
+  for(const b of panel.querySelectorAll('[data-factory]'))b.onclick=async()=>{
+   if(busy)return;busy=true;for(const choice of panel.querySelectorAll('button'))choice.disabled=true;
+   try{await loadFactory(b.dataset.factory);panel.close();}
+   catch(error){panel.querySelector('#factoryMessage').textContent=error.message;}
+   finally{busy=false;for(const choice of panel.querySelectorAll('button'))choice.disabled=false;}
+  };
   panel.querySelector('#shakePalette').onchange=e=>shake.setEnabled(e.target.checked);
   for(const choice of panel.querySelectorAll('[data-language]'))choice.onclick=async()=>{
    if(busy||choice.dataset.language===locale.language)return;

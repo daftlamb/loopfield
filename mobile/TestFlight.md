@@ -1,3 +1,27 @@
+# Loopfield 1.0 (8) · Release candidate
+
+Prepared 2026-10-01. Build 8 is not uploaded to TestFlight or submitted to App Review.
+
+- Bundle ID: `com.daftlamb.loopfield`; team: `AC8ABF9K2Q`.
+- Changes: optional Doto typeface, consistent mobile controls, removed INTERFACE scene/assets, Vowel and VA voices, three factory projects with automatic safety copies.
+- Archive: `../Loopfield-Releases/1.0-8/Loopfield.xcarchive`.
+- Release archive and distribution-signed IPA export succeeded. IPA: `../Loopfield-Releases/1.0-8/IPA/App.ipa`.
+- Export options use `destination=export`, so exporting this candidate does not upload it.
+- Validation: 50 Node tests, 24 offline voice render cases and three full preset song renders passed. Mobile and static builds passed. Simulator build, installation and launch succeeded.
+- Browser UI checks covered 375 × 667 layout, bilingual settings, Doto persistence, VA/Vowel controls, preset safety backup and compact Song/FX controls.
+- Physical iPhone was disconnected. Phone listening, long-press gestures and native Visual rotation still need manual verification. This is a prepared candidate, not an App Store approval.
+- AUv3 hosting is deliberately deferred to the next iteration.
+
+## Build 8 test focus
+
+- In Settings / Guide, compare PIXEL and DOTO, switch languages, restart and check persistence.
+- Load each factory project. Verify the previous project is available under saved copies; playback begins only when Play is tapped.
+- Try Vowel A–U morphing and its LFO route; try VA waveforms, detune, filter envelope, gate and ratchets.
+- Open an older project and verify it still plays with its original voices.
+- Check Song controls, all five FX rows and the three remaining visual scenes on a phone.
+
+---
+
 # Loopfield 1.0 (7)
 
 Release archive and App Store Connect distribution-signed IPA exported on 2026-09-15.

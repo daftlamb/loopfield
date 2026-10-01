@@ -1,4 +1,5 @@
 export const targets={
+  vowel:['元音 / A–U',0,4,.01],
   pitch:['音高 / 半音',-24,24,.1],volume:['音量',0,1,.01],pan:['声像',-1,1,.01],cutoff:['滤波 / Hz',80,18000,10],resonance:['共振',.1,12,.1],fm:['FM 深度',0,8,.1],ratio:['FM 比率',.5,8,.1],attack:['起音 / 秒',.002,1,.002],decay:['衰减 / 秒',.03,2,.01],gate:['Gate / %',5,400,5],
   'delay.mix':['延迟 MIX',0,1,.01],'delay.time':['延迟时间 / 秒',.05,.8,.01],'delay.feedback':['延迟反馈',0,.7,.01],
   'reverb.mix':['混响 MIX',0,1,.01],'chorus.mix':['合唱 MIX',0,1,.01],'chorus.rate':['合唱速度 / Hz',.1,5,.1],'chorus.depth':['合唱深度 / ms',0,8,.1],

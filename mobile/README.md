@@ -93,3 +93,14 @@ Capacitor CLI 开发依赖有 3 项 moderate audit 提示；未做破坏性强�
 - Visual allows landscape and hides surrounding controls; portrait restores the normal app. Canvas aspect ratio is preserved.
 - Repeat real-audio validation by serving the repository and opening `mobile/voice-render-check.html`; this diagnostic is excluded from the mobile bundle.
 - Release artifacts and verification limitations: see `TestFlight.md`.
+
+## Build 8 · Release polish (2026-10-01)
+
+- Standardized mobile control heights and compact Song arrangement rows. FX remains within a 375 × 667 viewport. PIXEL stays the default; optional locally bundled Doto is selectable in Settings / Guide and persists across launches. Chinese glyphs fall back to LoopPixel. Doto's OFL license is included under `fonts/LICENSES/doto/`.
+- Removed the INTERFACE scene, its renderer and both image assets. Old saved scene choices fall back to the remaining slideshow.
+- Added VOWEL with continuous A/E/I/O/U formant morphing and a Vowel LFO destination. Added VA with saw/pulse/triangle waveforms, dual-oscillator detune and filter envelope amount; existing attack/decay/filter/FX controls remain shared. Older projects receive compatible parameter defaults.
+- Settings / Guide includes Afterglow (82 BPM, VA keys), Glass Orbit (108 BPM, Bell/Pluck) and Vowel Tide (68 BPM, morphing Vowel/Pad). Each has four arranged patterns. Loading first writes a safety copy of the current project and remains stopped. Failed/full library writes prevent replacement.
+- Validation: 50 Node tests, 24 real OfflineAudioContext voice/gate/ratchet combinations and three complete song renders passed. All renders were finite, nonzero and unclipped with silent tails. Browser checks covered English/Chinese, Doto persistence, preset loading/safety copy, VA/Vowel controls, Song and FX layouts. Static and mobile builds passed; iOS Simulator build and launch passed. The current iPhone was unavailable, so this build still needs phone listening and touch/rotation checks.
+- Release archive and App Store Connect distribution-signed IPA export succeeded for 1.0 (8); no upload or review submission was performed.
+- AUv3 hosting is deferred by user decision. Next round should connect native AVAudioEngine/AVAudioUnit hosting, plugin discovery and editor presentation, MIDI scheduling, effect routing and saved plugin state. The current Web Audio graph is not an AUv3 host. Reference: https://developer.apple.com/documentation/audiotoolbox/incorporating-audio-effects-and-instruments
+- Font source: https://github.com/google/fonts/tree/main/ofl/doto

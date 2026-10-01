@@ -1,6 +1,8 @@
 // Mobile-only copy catalog. Desktop copy and saved project content stay untouched.
 // The runtime locale layer applies this catalog only to interface text.
 const copy = {
+ '预制工程已载入，原工程已保存副本。':'Preset loaded. Your previous project is saved as a copy.',
+ 'VOWEL / 元音':'VOWEL','VA / 模拟':'VA','元音 / A–U':'Vowel / A–U','VA 波形':'VA waveform','失谐 / cents':'Detune / cents','滤波包络 / octaves':'Filter envelope / octaves',
  'PAD / 铺底':'PAD','BASS / 贝斯':'BASS',
  '音色 →':'SOUND →',
 

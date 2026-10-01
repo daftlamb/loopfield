@@ -1,0 +1,13 @@
+<!doctype html><meta charset="utf-8"><title>Factory project audio checks</title><h1>Factory project audio checks</h1><pre id="result">Rendering…</pre><div id="audio"></div><script type="module">
+import {factoryProjects,makeFactoryProject} from './factory-projects.js';
+import {renderWav} from '../audio.js';
+const results=[];
+for(const p of factoryProjects){
+ const project=makeFactoryProject(p.id),blob=await renderWav(project,'song'),view=new DataView(await blob.arrayBuffer());let peak=0,sum=0,clipped=0;
+ const samples=(view.byteLength-44)/2;for(let i=44;i<view.byteLength;i+=2){const v=view.getInt16(i,true)/32768;peak=Math.max(peak,Math.abs(v));sum+=v*v;if(Math.abs(v)>=.999)clipped++;}
+ results.push({name:p.name,seconds:samples/2/44100,peak,rms:Math.sqrt(sum/samples),clipped,pass:peak>.001&&clipped===0});
+ const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=p.name+'.wav';a.textContent='Download '+p.name;
+ const player=document.createElement('audio');player.controls=true;player.src=url;const row=document.createElement('p');row.append(a,player);document.querySelector('#audio').append(row);
+ document.querySelector('#result').textContent=JSON.stringify(results,null,2);
+}
+</script>

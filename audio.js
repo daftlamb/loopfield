@@ -1,3 +1,4 @@
+import {vowelFormants} from './voice-shaping.js';
 import {midiNotes} from './midi.js';
 import {automate,modValue,routeFor,arpEvents} from './modulation.js';
 import {STEPS,stepDuration,ratchetOffsets,songOrder,nextSongPosition,gateDuration} from './model.js';
@@ -36,7 +37,26 @@ export function playNote(ctx,bus,t,s,time,gate=null,{bpm=96,origin=0,chip=null,t
     if(t.kind==='snare')osc('triangle',180);
   }else{
     const struck=t.kind==='bell'||t.kind==='pluck';
-    const carrier=osc(struck||t.kind==='fm'?'sine':t.kind==='pad'?'triangle':t.kind==='bass'?'sawtooth':t.kind,f);
+    const carrier=osc(struck||t.kind==='fm'?'sine':t.kind==='pad'?'triangle':t.kind==='bass'||t.kind==='vowel'?'sawtooth':t.kind==='va'?['sawtooth','square','triangle'][t.vaWave??0]:t.kind,f);
+    if(t.kind==='vowel'){
+      carrier.disconnect();
+      for(let i=0;i<3;i++){
+        const formant=ctx.createBiquadFilter(),level=ctx.createGain();
+        formant.type='bandpass';formant.Q.value=[7,10,12][i];level.gain.value=[1.4,.7,.35][i];
+        motion(formant.frequency,'vowel',t.vowel??0,v=>vowelFormants(v)[i]);
+        carrier.connect(formant);formant.connect(level);level.connect(env);nodes.push(formant,level);
+      }
+    }
+    if(t.kind==='va'){
+      carrier.disconnect();
+      const blend=ctx.createGain();blend.gain.value=.5;blend.connect(env);carrier.connect(blend);nodes.push(blend);
+      const o=osc(['sawtooth','square','triangle'][t.vaWave??0],f*2**((t.vaDetune??9)/1200));o.disconnect();o.connect(blend);
+      if(!routeFor(t.mod,'cutoff')){
+        filter.frequency.cancelScheduledValues(time);
+        filter.frequency.setValueAtTime(Math.min(18000,t.cutoff*2**(t.vaEnvelope??2)),time);
+        filter.frequency.exponentialRampToValueAtTime(t.cutoff,Math.min(end,time+attack+t.decay*.5));
+      }
+    }
     if(t.kind==='pad'||t.kind==='bass'){
       // Normalise the layered voice before the shared velocity, gate and FX path.
       carrier.disconnect();
@@ -68,7 +88,7 @@ export function playNote(ctx,bus,t,s,time,gate=null,{bpm=96,origin=0,chip=null,t
         o.connect(gain);gain.connect(env);pitch(o.detune);sources.push(o);nodes.push(gain);
       }
     }
-    if(t.fm>0||routeFor(t.mod,'fm')){const mod=ctx.createOscillator(),depth=ctx.createGain();mod.frequency.value=f*t.ratio;if(!routeFor(t.mod,'fm')){depth.gain.setValueAtTime(f*t.fm,time);depth.gain.exponentialRampToValueAtTime(Math.max(0.01,f*t.fm*0.12),end);}mod.connect(depth);depth.connect(carrier.frequency);if(routeFor(t.mod,'fm'))motion(depth.gain,'fm',t.fm,v=>f*v);motion(mod.frequency,'ratio',t.ratio,v=>f*v);pitch(mod.detune);sources.push(mod);nodes.push(depth);}
+    if(!['va','vowel'].includes(t.kind)&&(t.fm>0||routeFor(t.mod,'fm'))){const mod=ctx.createOscillator(),depth=ctx.createGain();mod.frequency.value=f*t.ratio;if(!routeFor(t.mod,'fm')){depth.gain.setValueAtTime(f*t.fm,time);depth.gain.exponentialRampToValueAtTime(Math.max(0.01,f*t.fm*0.12),end);}mod.connect(depth);depth.connect(carrier.frequency);if(routeFor(t.mod,'fm'))motion(depth.gain,'fm',t.fm,v=>f*v);motion(mod.frequency,'ratio',t.ratio,v=>f*v);pitch(mod.detune);sources.push(mod);nodes.push(depth);}
   }
   let ended=0;
   sources.forEach(src=>{src.onended=()=>{src.disconnect();if(++ended===sources.length)nodes.forEach(n=>n.disconnect());};src.start(time);src.stop(end+0.02);});

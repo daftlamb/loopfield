@@ -4,6 +4,8 @@ import {Preferences} from '@capacitor/preferences';
 import {Filesystem,Directory} from '@capacitor/filesystem';
 import {Share} from '@capacitor/share';
 import {PROJECT_KEY,RECOVERY_KEY,LIBRARY_KEY,parseProject,restoreLatest,readLibrary,createWriter,exportBudget,safeFilename,MAX_FILE_BYTES} from './storage.js';
+import {factoryProjects,makeFactoryProject} from './factory-projects.js';
+import {installTypography} from './typography.js';
 import {installHelp} from './help.js';
 import {installLocalization,LANGUAGE_KEY,normalizeLanguage} from './localization.js';
 import {installShakePalette} from './shake-palette.js';
@@ -91,8 +93,17 @@ async function start(){
   $('.visualPanel .sectionhead>span').textContent='画面 / FIELD';
   document.addEventListener('contextmenu',e=>{if(!e.target.closest('input,textarea'))e.preventDefault();},true);
   const closeMod=document.createElement('button');closeMod.textContent='×';closeMod.setAttribute('aria-label','Close modulation');closeMod.onclick=()=>$('#modDialog').close();$('#modDialog .dialogHead').append(closeMod);
+  let library=[],libraryUnavailable=true;
   const shake=installShakePalette();
-  installHelp({locale,shake,async changeLanguage(language){
+  const typography=installTypography();
+  installHelp({locale,shake,typography,projects:factoryProjects,async loadFactory(id){
+    const loaded=makeFactoryProject(id);
+    if(libraryUnavailable||library.length>=50)throw Error(locale.language==='zh'?'无法保存当前工程副本，请先导出备份并整理副本。':'Cannot save a safety copy. Export your project and make space in saved copies first.');
+    const project=app.getProject(),next=[...library,{id:crypto.randomUUID(),name:project.name,savedAt:Date.now(),project}];
+    await write(LIBRARY_KEY,JSON.stringify(next));library=next;localSet(LIBRARY_KEY,JSON.stringify(next));
+    await app.openProject(loaded);await persist();app.setMobileTab('sequence');
+    app.toast(locale.language==='zh'?'预制工程已载入，原工程已保存副本。':'Preset loaded. Your previous project is saved as a copy.');
+  },async changeLanguage(language){
     const next=normalizeLanguage(language);
     await Preferences.set({key:LANGUAGE_KEY,value:next});
     localSet(LANGUAGE_KEY,next);locale.setLanguage(next);
@@ -107,10 +118,9 @@ async function start(){
   landscape.addEventListener('change',updateVisualMode);
   window.addEventListener('loopfield-tab-changed',updateVisualMode);updateVisualMode();
 
-  let library=[],libraryUnavailable=false;
   window.addEventListener('loopfield-language-changed',()=>{if(projectDialog.open)renderLibrary();});
-  try{const stored=await Preferences.get({key:LIBRARY_KEY});library=readLibrary(stored.value??localGet(LIBRARY_KEY));}
-  catch{try{const backup=localGet(LIBRARY_KEY);if(!backup)throw Error('No valid library backup');library=readLibrary(backup);}catch{libraryUnavailable=true;$('#projectMessage').textContent='工程副本列表无法读取；当前编辑仍可导出。';}}
+  try{const stored=await Preferences.get({key:LIBRARY_KEY});library=readLibrary(stored.value??localGet(LIBRARY_KEY));libraryUnavailable=false;}
+  catch{try{const backup=localGet(LIBRARY_KEY);if(!backup)throw Error('No valid library backup');library=readLibrary(backup);libraryUnavailable=false;}catch{libraryUnavailable=true;$('#projectMessage').textContent='工程副本列表无法读取；当前编辑仍可导出。';}}
   function renderLibrary(){
     $('#projectList').replaceChildren();
     if(!library.length){const p=document.createElement('p');p.className='shellNote';p.textContent='还没有保存副本';$('#projectList').append(p);}
