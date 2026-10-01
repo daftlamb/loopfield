@@ -114,3 +114,13 @@ Capacitor CLI 开发依赖有 3 项 moderate audit 提示；未做破坏性强�
 - Validation: 51 Node tests passed, including every MIDI pitch from 24–96 mapped to the expected enharmonic spelling. Browser checks at 375×667 and 393×759 covered both themes, English operating UI with Chinese help, persistent selection, pitch edits/undo, Sound, Song, FX, tools and LFO settings. Main controls had no horizontal text overflow. Release archive for build 9 succeeded.
 
 - Build 9 development-signed IPA exported and installed successfully on the connected iPhone 17 Pro Max (mog), 2026-10-01. App bundle version and final theme CSS were checked before installation.
+
+## Build 10 · Editing continuity and palettes (2026-10-01)
+
+- Play, numbered track selection and step-page selection share one responsive width and a 44px height.
+- After editing a pitch via the pitch selector, wheel or touch drag, newly enabled note steps use that last pitch on the same track. Existing notes and other parameter modes retain their pitches. State is transient and track-scoped; project replacement and undo cannot leak a stale pitch into a restored project.
+- Touch pitch drag advances one semitone per 11px instead of 14px. Other parameters and the 320ms hold threshold are unchanged.
+- Removed offset button focus outlines; keyboard focus uses contrasting colours. Dialog close icons have explicitly centred 44px hit areas. Step edit selection remains visible.
+- Added MONO DARK (black/white/grey), EVA (purple/green/white) and CYBERPUNK (dark blue/cyan/pink). Palette selection and shake now cycle eight palettes. Native status-bar text is light in all three new dark palettes.
+- 53 Node tests passed, including track-scoped pitch continuation, existing-note preservation, undo-context reset and drag intervals. Browser verified actual Db4 continuation, undo, matched widths, all three palettes and keyboard focus with no outline and zero icon centring offset. Release archive passed.
+- Development-signed build 10 exported and installed on the connected iPhone 17 Pro Max (mog).

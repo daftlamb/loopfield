@@ -1,3 +1,16 @@
+# Loopfield 1.0 (10) · Editing polish
+
+Prepared 2026-10-01. Not uploaded or submitted.
+
+- Matching play / numbered / page selector widths.
+- Track-scoped last-pitch continuation for new notes; slightly faster pitch drag.
+- Centred dialog close buttons and colour-only button focus states.
+- MONO DARK, EVA and CYBERPUNK palettes with native light status-bar text.
+- Release archive: `../Loopfield-Releases/1.0-10/Loopfield.xcarchive`.
+- 53 tests and browser interaction checks passed.
+
+---
+
 # Loopfield 1.0 (9) · Theme refinement
 
 Prepared 2026-10-01. Not uploaded or submitted.

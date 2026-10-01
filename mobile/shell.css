@@ -190,3 +190,17 @@ html .quickSound{flex:0 0 96px;min-height:96px;max-height:96px}
 html #quickParameters label>span{line-height:18px}
 @media(max-height:740px){html .quickSound{flex-basis:86px;min-height:86px;max-height:86px}}
 @media(min-width:761px){html .quickSound{flex-basis:112px;min-height:112px;max-height:112px}}
+
+/* One shared width for the vertically aligned play / numbered selectors. */
+:root{--transport-key-width:min(44px,calc((100vw - 53px)/8))}
+html .transport .play,html #tracks .track{width:var(--transport-key-width);min-width:var(--transport-key-width);max-width:var(--transport-key-width);height:44px;flex-shrink:0;justify-self:start}
+/* Focus uses colour, without the browser's offset ring around icon buttons. */
+html button:focus,html .choiceControl button:focus-visible{outline:none;box-shadow:none}
+html button:focus-visible:not(.step):not(:disabled){background:var(--ink);color:var(--paper)}
+html button:active:not(.step):not(:disabled){background:var(--accent);color:var(--paper)}
+html .dialogHead button{display:inline-flex;align-items:center;justify-content:center;padding:0;width:44px;height:44px;flex:0 0 44px}
+html .dialogHead button .uiIcon{margin:0;width:20px;height:20px}
+
+html .stepPages button{width:var(--transport-key-width);min-width:var(--transport-key-width);max-width:var(--transport-key-width);padding:0}
+html[data-palette=eva] :is(.play,.track.active,.tabs button.active,.stepPages button[aria-pressed=true],.choiceControl.segmented button[aria-pressed=true]),html[data-palette=cyber] :is(.play,.track.active,.tabs button.active,.stepPages button[aria-pressed=true],.choiceControl.segmented button[aria-pressed=true]){background:var(--accent);color:var(--paper)}
+html[data-palette=eva] #tracks .track.active,html[data-palette=cyber] #tracks .track.active{background:var(--accent);color:var(--paper)}

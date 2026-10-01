@@ -1,3 +1,4 @@
+import {dragDistance} from './step-editing.js';
 export function draggedValue(mode,start,steps){
   if(mode==='note')return Math.max(24,Math.min(96,start+steps));
   if(mode==='gate')return Math.max(0,Math.min(400,start+steps*5));
@@ -21,7 +22,7 @@ export function setupMobile({buttons,selectTrack,selectStep,read,checkpoint,chan
       const touch=e.touches[0];
       if(!gesture.active){if(Math.hypot(touch.clientX-gesture.x,touch.clientY-gesture.y)>8){clearTimeout(timer);gesture=null;}return;}
       if(e.cancelable)e.preventDefault();
-      const steps=Math.round((gesture.y-touch.clientY)/14);if(steps===gesture.last)return;
+      const steps=Math.round((gesture.y-touch.clientY)/dragDistance(gesture.mode));if(steps===gesture.last)return;
       const value=draggedValue(gesture.mode,gesture.value,steps);gesture.last=steps;
       if(!gesture.changed){checkpoint();gesture.changed=true;}
       change(i,gesture.mode,value);

@@ -1,3 +1,4 @@
+import {createPitchContinuation} from './step-editing.js';
 import {vowelLabel} from './voice-shaping.js';
 import {setupMidi} from './midi-ui.js';
 import {icon} from './icons.js';
@@ -27,6 +28,7 @@ function save(){window.dispatchEvent(new Event('loopfield-project-changed'));cle
 let previewWarning=false;
 function previewEditedNote(){engine.previewNote(current(),current().steps[selected]).catch(()=>{if(!previewWarning){toast('请先点一次试听音色，开启音符预览');previewWarning=true;}});}
 function checkpoint(){history.push(clone(project));if(history.length>30)history.shift();$('#undo').disabled=false;}
+const pitchContinuation=createPitchContinuation();
 let stepClipboard=null,menuTarget=null;
 const stepMenu=$('#stepMenu');
 function copyStep(target){stepClipboard=clone(project.patterns[target.pattern][target.track].steps[target.step]);toast('已复制 STEP '+String(target.step+1).padStart(2,'0'));}
@@ -45,7 +47,7 @@ document.addEventListener('keydown',e=>{
   e.preventDefault();const target=stepMenu.hidden?{pattern:project.pattern,track,step:selected}:menuTarget;
   if(key==='c')copyStep(target);else pasteStep(target);stepMenu.hidden=true;
 });
-const gridButtons=Array.from({length:STEPS},(_,i)=>{const b=document.createElement('button');b.className='step';b.innerHTML=`<small>${String(i+1).padStart(2,'0')}</small><span class="value"></span><i class="glyph"></i>`;b.onclick=()=>{checkpoint();selected=i;const s=current().steps[i];s.on=!s.on;renderGrid();renderStep();save();if(s.on&&mode==='note')previewEditedNote();};b.oncontextmenu=e=>{e.preventDefault();selected=i;renderGrid();renderStep();b.focus({preventScroll:true});menuTarget={pattern:project.pattern,track,step:i};$('#pasteStep').disabled=!stepClipboard;stepMenu.hidden=false;const r=b.getBoundingClientRect(),x=e.clientX||r.left,y=e.clientY||r.bottom;stepMenu.style.left=Math.max(8,Math.min(x,innerWidth-stepMenu.offsetWidth-8))+'px';stepMenu.style.top=Math.max(8,Math.min(y,innerHeight-stepMenu.offsetHeight-8))+'px';$('#copyStep').focus({preventScroll:true});};$('#grid').append(b);return b;});
+const gridButtons=Array.from({length:STEPS},(_,i)=>{const b=document.createElement('button');b.className='step';b.innerHTML=`<small>${String(i+1).padStart(2,'0')}</small><span class="value"></span><i class="glyph"></i>`;b.onclick=()=>{checkpoint();selected=i;const s=current().steps[i];pitchContinuation.toggle(current(),i,mode);renderGrid();renderStep();save();if(s.on&&mode==='note')previewEditedNote();};b.oncontextmenu=e=>{e.preventDefault();selected=i;renderGrid();renderStep();b.focus({preventScroll:true});menuTarget={pattern:project.pattern,track,step:i};$('#pasteStep').disabled=!stepClipboard;stepMenu.hidden=false;const r=b.getBoundingClientRect(),x=e.clientX||r.left,y=e.clientY||r.bottom;stepMenu.style.left=Math.max(8,Math.min(x,innerWidth-stepMenu.offsetWidth-8))+'px';stepMenu.style.top=Math.max(8,Math.min(y,innerHeight-stepMenu.offsetHeight-8))+'px';$('#copyStep').focus({preventScroll:true});};$('#grid').append(b);return b;});
 gridButtons.forEach((b,i)=>{
   b.title='滚轮向上增加、向下减少当前参数';
   b.addEventListener('wheel',e=>{
@@ -56,7 +58,7 @@ gridButtons.forEach((b,i)=>{
       ?Math.max(24,Math.min(96,s.note+direction))
       :mode==='gate'?Math.max(0,Math.min(400,s.gate+direction*5)):mode==='ratchet'?Math.max(1,Math.min(8,s.ratchet+direction)):Math.max(mode==='velocity'?0.05:0,Math.min(1,Math.round((s[mode]+direction*0.05)*100)/100));
     if(s.on&&s[mode]===value)return;
-    checkpoint();selected=i;s[mode]=value;s.on=true;if(mode==='note')previewEditedNote();
+    checkpoint();selected=i;s[mode]=value;s.on=true;if(mode==='note'){pitchContinuation.remember(current(),value);previewEditedNote();}
     renderGrid();renderStep();save();
   },{passive:false});
 });
@@ -121,7 +123,7 @@ const fxControls=fxSpecs.map(spec=>{
 function renderFx(){fxControls.forEach(({spec,row,toggle,controls})=>{const fx=editingFx()[spec.id];row.classList.toggle('enabled',fx.enabled);toggle.setAttribute('aria-pressed',String(fx.enabled));controls.forEach(({id,input,output})=>{input.value=fx[id];output.textContent=fxValue(id,fx[id]);});});$('#fxCount').textContent=Object.values(editingFx()).filter(f=>f.enabled).length+' / 5 ON';}
 function renderProject(){ $('#projectName').value=project.name;$('#bpm').value=project.bpm;$('#swing').value=project.swing;$('#mobileSwing').value=project.swing;$('#mobileSwingValue').textContent=project.swing+'%';$('#swingValue').textContent=project.swing+'%';$('#master').value=Math.round(project.master*100);renderEditor();renderFx();renderSong();}
 $('#modes').onclick=e=>{const button=e.target.closest('button'),editor=button?.dataset.editor,m=button?.dataset.mode;if(!editor&&!m)return;$('.sequencePanel').classList.toggle('modQuickActive',!!editor);$('#modQuick').hidden=!editor;[...$('#modes').children].forEach(b=>b.classList.toggle('active',b===button));if(editor){modUI.open(editor);return;}mode=m;$('#random').innerHTML=icon('shuffle')+randomLabels[mode];renderGrid();};
-for(const k of ['velocity','probability','note','ratchet','gate']){const input=$('#'+k);input.addEventListener('pointerdown',checkpoint);input.addEventListener('keydown',e=>{if(e.key.startsWith('Arrow'))checkpoint();});input.oninput=()=>{const s=current().steps[selected];s[k]=Number(input.value)/(['note','ratchet','gate'].includes(k)?1:100);s.on=true;renderGrid();renderStep();save();if(k==='note')previewEditedNote();};}
+for(const k of ['velocity','probability','note','ratchet','gate']){const input=$('#'+k);input.addEventListener('pointerdown',checkpoint);input.addEventListener('keydown',e=>{if(e.key.startsWith('Arrow'))checkpoint();});input.oninput=()=>{const s=current().steps[selected];s[k]=Number(input.value)/(['note','ratchet','gate'].includes(k)?1:100);s.on=true;renderGrid();renderStep();save();if(k==='note'){pitchContinuation.remember(current(),s.note);previewEditedNote();}};}
 $('#kind').onchange=()=>{checkpoint();selectVoice(current(),$('#kind').value);renderEditor();save();};
 for(const k of ['mute','solo'])$('#'+k).onclick=()=>{checkpoint();if(k==='solo')toggleSolo(project.patterns[project.pattern],track);else current().mute=!current().mute;renderEditor();save();};
 $('#audition').onclick=async()=>{try{await engine.preview(current(),{...current().steps[selected],velocity:0.8});}catch{toast('音频启动失败，请重新点按试听');}};
@@ -161,9 +163,9 @@ setupMobile({
   buttons:gridButtons,
   selectTrack:i=>{track=i;renderEditor();},
   selectStep:i=>{selected=i;renderGrid();renderStep();},
-  read:i=>({mode,value:current().steps[i][mode]}),
+  read:i=>({mode,value:mode==='note'&&!current().steps[i].on?pitchContinuation.next(current(),current().steps[i].note):current().steps[i][mode]}),
   checkpoint,
-  change:(i,key,value)=>{selected=i;current().steps[i][key]=value;current().steps[i].on=true;renderGrid();renderStep();save();if(key==='note')previewEditedNote();}
+  change:(i,key,value)=>{selected=i;current().steps[i][key]=value;current().steps[i].on=true;renderGrid();renderStep();save();if(key==='note'){pitchContinuation.remember(current(),value);previewEditedNote();}}
 });
 
 $('#mobileSwing').oninput=()=>{project.swing=Number($('#mobileSwing').value);$('#swing').value=project.swing;$('#swingValue').textContent=project.swing+'%';$('#mobileSwingValue').textContent=project.swing+'%';save();};

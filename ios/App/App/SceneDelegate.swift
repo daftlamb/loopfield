@@ -66,8 +66,8 @@ final class LoopfieldViewController: CAPBridgeViewController {
     }
 
     fileprivate func updatePalette(_ name: String) {
-        guard ["paper", "gameboy", "amber", "midnight", "ink"].contains(name) else { return }
-        paletteStatusStyle = ["amber", "midnight"].contains(name) ? .lightContent : .darkContent
+        guard ["paper", "gameboy", "amber", "midnight", "ink", "mono", "eva", "cyber"].contains(name) else { return }
+        paletteStatusStyle = ["amber", "midnight", "mono", "eva", "cyber"].contains(name) ? .lightContent : .darkContent
         setNeedsStatusBarAppearanceUpdate()
     }
     override func viewDidLoad() {

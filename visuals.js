@@ -3,6 +3,9 @@ const palettes={
   gameboy:['#cadc9f','#30452a','#63774b','#9fb77c','#607b30','#172c22','#bbd778','#3d5739'],
   amber:['#241e17','#efbb62','#b39366','#554631','#ff7958','#15130e','#ffd080','#504027'],
   midnight:['#161e32','#b3c7e5','#8394b5','#354460','#ee88b7','#0b1223','#91c7e3','#293c57'],
+  mono:['#090909','#eeeeee','#a1a1a1','#444444','#ffffff','#030303','#eeeeee','#3b3b3b'],
+  eva:['#20142d','#eee9f7','#b7a6cc','#554368','#adff56','#0c0912','#b4ff69','#754ab0'],
+  cyber:['#08121b','#dcf9ff','#86b9c6','#2d4c5f','#ff4db8','#03080e','#5df9ff','#913e9c'],
   ink:['#ededeb','#242624','#6c706c','#bbbebb','#616861','#171917','#e4e6df','#424742']
 };
 export function startVisuals(engine,{isVisible=()=>!document.hidden}={}){
@@ -12,7 +15,7 @@ export function startVisuals(engine,{isVisible=()=>!document.hidden}={}){
  try{const p=JSON.parse(localStorage.getItem('loopfield-visuals-v1'));if(p){if(palettes[p.palette])prefs.palette=p.palette;if(['store','atlas','globe','random'].includes(p.scene))prefs.scene=p.scene;if(p.sensitivity>=.5&&p.sensitivity<=3)prefs.sensitivity=p.sensitivity;}}catch{}
  const names=['store','atlas','globe'],images={};let ready=false;
  Promise.all(names.map(name=>new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>{images[name]=img;resolve();};img.onerror=reject;img.src=new URL('./assets/scenes/'+name+'.png',import.meta.url).href;}))).then(()=>ready=true).catch(()=>{canvas.setAttribute('aria-label','场景素材加载失败，请刷新');});
- function settings(){palettes[prefs.palette].forEach((v,i)=>document.documentElement.style.setProperty('--'+['paper','ink','muted','line','accent','screen','light','shade'][i],v));$('#palette').value=prefs.palette;$('#scene').value=prefs.scene;$('#sensitivity').value=prefs.sensitivity;}
+ function settings(){document.documentElement.dataset.palette=prefs.palette;palettes[prefs.palette].forEach((v,i)=>document.documentElement.style.setProperty('--'+['paper','ink','muted','line','accent','screen','light','shade'][i],v));$('#palette').value=prefs.palette;$('#scene').value=prefs.scene;$('#sensitivity').value=prefs.sensitivity;}
  function save(){settings();try{localStorage.setItem('loopfield-visuals-v1',JSON.stringify({...prefs,slideshowVersion:3}));}catch{}}
  let sceneStart=performance.now();$('#palette').onchange=e=>{prefs.palette=e.target.value;save();};$('#scene').onchange=e=>{prefs.scene=e.target.value;sceneStart=performance.now();save();};$('#sensitivity').oninput=e=>{prefs.sensitivity=+e.target.value;save();};settings();
  const fft=new Uint8Array(512),wave=new Float32Array(1024);let last=0,time=0,energy=0,bass=0;
