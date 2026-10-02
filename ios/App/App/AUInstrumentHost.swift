@@ -138,6 +138,27 @@ final class AUInstrumentHost: NSObject, WKScriptMessageHandlerWithReply {
             }
         }
     }
+    func runEditorDiagnostic() {
+        func report(_ fields: [String: Any]) {
+            if let data = try? JSONSerialization.data(withJSONObject: fields, options: [.prettyPrinted]), let dir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
+                try? data.write(to: dir.appendingPathComponent("auv3-editor-check.json"), options: .atomic)
+            }
+        }
+        guard let component = instruments().first(where: { $0.name.localizedCaseInsensitiveContains("sonic") }) else { report(["error": "Sonic Synth not found"]); return }
+        let slot: [String: Any] = ["id": identifier(component.audioComponentDescription), "name": component.name]
+        configure(["slots": [slot] + Array(repeating: NSNull(), count: 7)]) { result, error in
+            guard error == nil, (result as? [String: Any])?["errors"] as? [String] == [] else { report(["error": error ?? String(describing: result)]); return }
+            do { try AVAudioSession.sharedInstance().setActive(true); try self.startRendering() }
+            catch { report(["error": error.localizedDescription]); return }
+            let before = self.engine.isRunning
+            self.show(["track": 0]) { _, error in if let error { report(["error": error]) } }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                report(["instrument": component.name, "runningBeforeEditor": before,
+                        "runningWithEditor": self.engine.isRunning, "editorPresented": self.editor?.presentingViewController != nil,
+                        "sequencerViewInWindow": self.webView?.window != nil])
+            }
+        }
+    }
     func writeInstrumentDiagnostic() {
         let query = AudioComponentDescription(componentType: kAudioUnitType_MusicDevice, componentSubType: 0, componentManufacturer: 0, componentFlags: 0, componentFlagsMask: 0)
         let result = componentManager.components(matching: query).map { component -> [String: Any] in
@@ -331,7 +352,10 @@ final class AUInstrumentHost: NSObject, WKScriptMessageHandlerWithReply {
                     self?.webView?.evaluateJavaScript("window.dispatchEvent(new Event('loopfield-au-state'))", completionHandler: nil)
                     reply([:], nil)
                 }
-                editor.modalPresentationStyle = .fullScreen
+                // Keep WKWebView in the window: .fullScreen removes it and triggers
+                // visibilitychange/pagehide, which correctly stops background playback.
+                // A plugin editor is foreground UI, so preserve the sequencer underneath.
+                editor.modalPresentationStyle = .overFullScreen
                 owner.present(editor, animated: true)
             }
         }

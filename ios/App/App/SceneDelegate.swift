@@ -77,6 +77,7 @@ final class LoopfieldViewController: CAPBridgeViewController {
         instrumentHost = AUInstrumentHost(owner: self, webView: webView)
         if let instrumentHost { webView?.configuration.userContentController.addScriptMessageHandler(instrumentHost, contentWorld: .page, name: "loopfieldAU") }
         #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("--loopfield-au-editor") { DispatchQueue.main.asyncAfter(deadline: .now() + 3) { [weak self] in self?.instrumentHost?.runEditorDiagnostic() } }
         if ProcessInfo.processInfo.arguments.contains("--loopfield-au-switch") { instrumentHost?.runSwitchDiagnostic() }
         if ProcessInfo.processInfo.arguments.contains("--loopfield-au-probe") { instrumentHost?.runAudioDiagnostic() }
         if ProcessInfo.processInfo.arguments.contains("--loopfield-au-list") {

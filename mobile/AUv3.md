@@ -40,3 +40,9 @@ The component manager is retained for the host lifetime. Debug list diagnostics 
 Selecting a different instrument no longer stops or resets the sequencer. The project assignment stays unchanged while the replacement loads. Native configuration instantiates and validates the new unit before detaching the old slot, clears only that slot's pending MIDI/active notes, and leaves other units and their queued events running. Loading errors keep the original project assignment. Explicit Stop/background interruption cancels the pending replacement without restarting transport. A short sound discontinuity on the replaced track is still possible; this is not crossfaded switching.
 
 65 JavaScript tests pass, including deferred replacement and Stop cancellation. Signed iPhone test with Tabla → SYNQUAD reports engineStillRunning=true, otherInstrumentPreserved=true, otherNotesPreserved=true, replacementLoaded=SYNQUAD, errors=[]. Debug-only --loopfield-au-switch writes Documents/auv3-switch-check.json. This checks live graph replacement and scheduling preservation; subjective glitches and plugin-specific behavior still require listening tests.
+
+## Opening plugin editors without stopping — 2026-10-02
+
+Sonic Synth reproduced a separate interruption: presenting its editor with `.fullScreen` removed the sequencer WKWebView from the window. The web visibility handler then stopped audio. Presenting with `.overFullScreen` keeps the underlying web view attached without bypassing actual app-background or audio-interruption handlers.
+
+Signed iPhone regression probe (`--loopfield-au-editor`, `Documents/auv3-editor-check.json`) loads Sonic Synth and opens the normal host editor. Before the fix: editorPresented=true, runningBeforeEditor=true, runningWithEditor=false, sequencerViewInWindow=false. After the fix: all four are true. The probe verifies native playback remains active through presentation; parameter interaction and extended listening remain manual checks.
