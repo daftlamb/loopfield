@@ -221,8 +221,10 @@ export async function captureInstrumentState(){
 }
 export async function setInstrument(index,slot){
  if(!Number.isInteger(index)||index<0||index>7)return;
- await captureInstrumentState();await stop();checkpoint();
- project.instruments??=Array(8).fill(null);project.instruments[index]=slot;
+ await captureInstrumentState();
+ const original=project;
+ const slots=await engine.instruments.replace(project,index,slot,()=>engine.playing);
+ if(project!==original)return;
+ checkpoint();project.instruments=slots;
  renderEditor();save();
- if(slot)await engine.instruments?.prepare(project);
 }

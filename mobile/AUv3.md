@@ -34,3 +34,9 @@ Debug-only `--loopfield-au-list` writes Documents/auv3-instruments.json. `--loop
 - https://developer.apple.com/documentation/audiotoolbox/1387633-aueventsampletime
 
 The component manager is retained for the host lifetime. Debug list diagnostics include unfiltered instrument names, IDs and both descriptor/registered flags, with a second snapshot after startup. The entitlement must remain enabled when signing future TestFlight builds.
+
+## Live instrument replacement — 2026-10-02
+
+Selecting a different instrument no longer stops or resets the sequencer. The project assignment stays unchanged while the replacement loads. Native configuration instantiates and validates the new unit before detaching the old slot, clears only that slot's pending MIDI/active notes, and leaves other units and their queued events running. Loading errors keep the original project assignment. Explicit Stop/background interruption cancels the pending replacement without restarting transport. A short sound discontinuity on the replaced track is still possible; this is not crossfaded switching.
+
+65 JavaScript tests pass, including deferred replacement and Stop cancellation. Signed iPhone test with Tabla → SYNQUAD reports engineStillRunning=true, otherInstrumentPreserved=true, otherNotesPreserved=true, replacementLoaded=SYNQUAD, errors=[]. Debug-only --loopfield-au-switch writes Documents/auv3-switch-check.json. This checks live graph replacement and scheduling preservation; subjective glitches and plugin-specific behavior still require listening tests.

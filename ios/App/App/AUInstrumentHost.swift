@@ -109,6 +109,35 @@ final class AUInstrumentHost: NSObject, WKScriptMessageHandlerWithReply {
             }
         } catch { result["error"] = error.localizedDescription; finish() }
     }
+    func runSwitchDiagnostic() {
+        let list = instruments()
+        guard let tabla = list.first(where: { $0.name == "Tabla" }), let syn = list.first(where: { $0.name == "SYNQUAD" }) else { return }
+        let t: [String: Any] = ["id": identifier(tabla.audioComponentDescription), "name": tabla.name]
+        let s: [String: Any] = ["id": identifier(syn.audioComponentDescription), "name": syn.name]
+        var slots: [Any] = [t, s] + Array(repeating: NSNull(), count: 6)
+        func report(_ result: [String: Any]) {
+            self.stop()
+            if let data = try? JSONSerialization.data(withJSONObject: result, options: [.prettyPrinted]), let directory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
+                try? data.write(to: directory.appendingPathComponent("auv3-switch-check.json"), options: .atomic)
+            }
+        }
+        configure(["slots": slots]) { value, error in
+            guard error == nil, (value as? [String: Any])?["errors"] as? [String] == [] else { report(["error": error ?? String(describing: value)]); return }
+            do { try AVAudioSession.sharedInstance().setActive(true); try self.startRendering() }
+            catch { report(["error": error.localizedDescription]); return }
+            let otherUnit = self.units[1]
+            let event: [String: Any] = ["note": 36, "velocity": 100, "at": Date().timeIntervalSince1970 * 1000 + 9000, "duration": 0.2]
+            self.schedule(["track": 1, "events": [event]])
+            slots[0] = s
+            self.configure(["slots": slots]) { value, error in
+                report(["error": error ?? "", "result": value ?? NSNull(),
+                        "engineStillRunning": self.engine.isRunning,
+                        "otherInstrumentPreserved": self.units[1] === otherUnit,
+                        "otherNotesPreserved": self.pending.contains(where: { $0.track == 1 }),
+                        "replacementLoaded": self.assignments[0]?["name"] as? String ?? ""])
+            }
+        }
+    }
     func writeInstrumentDiagnostic() {
         let query = AudioComponentDescription(componentType: kAudioUnitType_MusicDevice, componentSubType: 0, componentManufacturer: 0, componentFlags: 0, componentFlagsMask: 0)
         let result = componentManager.components(matching: query).map { component -> [String: Any] in
@@ -167,27 +196,26 @@ final class AUInstrumentHost: NSObject, WKScriptMessageHandlerWithReply {
         var completed = false
         func reply(_ value: Any?, _ error: String?) { guard !completed else { return }; completed = true; completion(value, error) }
         guard !configuring, let slots = body["slots"] as? [Any], slots.count == 8 else { reply(nil, "Instrument loading is busy or invalid"); return }
-        configuring = true; stop(); let request = generation
+        configuring = true; let request = generation
         DispatchQueue.main.asyncAfter(deadline: .now() + 20) { [weak self] in
             guard !completed, let self else { return }
-            self.stop(); self.configuring = false; reply(nil, "Instrument loading timed out. Try again or choose BUILT-IN.")
+            self.configuring = false; reply(nil, "Instrument loading timed out. Try again or choose BUILT-IN.")
         }
         let components = instruments()
         func load(_ index: Int, _ errors: [String]) {
+            guard !completed else { return }
             guard self.generation == request else { self.configuring = false; reply(nil, "Instrument loading cancelled"); return }
             guard index < 8 else { self.configuring = false; reply(["errors": errors], nil); return }
             let slot = slots[index] as? [String: Any]
             if let slot, let previous = self.assignments[index], NSDictionary(dictionary: slot).isEqual(to: previous), self.units[index] != nil { load(index + 1, errors); return }
-            if let old = self.units.removeValue(forKey: index) { self.engine.disconnectNodeOutput(old); self.engine.detach(old) }
-            if let old = self.mixers.removeValue(forKey: index) { self.engine.disconnectNodeOutput(old); self.engine.detach(old) }
-            self.assignments.removeValue(forKey: index)
-            guard let slot else { load(index + 1, errors); return }
+            guard let slot else { self.removeTrack(index); load(index + 1, errors); return }
             guard let id = slot["id"] as? String, let component = components.first(where: { self.identifier($0.audioComponentDescription) == id }) else {
                 load(index + 1, errors + ["Track \(index + 1): instrument missing. Install its app or choose BUILT-IN."]); return
             }
             AVAudioUnit.instantiate(with: component.audioComponentDescription, options: .loadOutOfProcess) { [weak self] unit, error in
                 DispatchQueue.main.async {
                     guard let self else { return }
+                    guard !completed else { return }
                     guard self.generation == request else { self.configuring = false; reply(nil, "Instrument loading cancelled"); return }
                     guard let unit, unit.auAudioUnit.scheduleMIDIEventBlock != nil else {
                         load(index + 1, errors + [error?.localizedDescription ?? "Instrument has no MIDI input"]); return
@@ -201,6 +229,7 @@ final class AUInstrumentHost: NSObject, WKScriptMessageHandlerWithReply {
                         let format = unit.outputFormat(forBus: 0)
                         guard format.channelCount > 0, format.channelCount <= 2, format.sampleRate > 0 else { throw self.failure("This instrument needs an unsupported output format") }
                         let mixer = AVAudioMixerNode()
+                        self.removeTrack(index)
                         self.engine.attach(unit); self.engine.attach(mixer)
                         self.engine.connect(unit, to: mixer, format: format)
                         self.engine.connect(mixer, to: self.engine.mainMixerNode, format: nil)
@@ -211,6 +240,17 @@ final class AUInstrumentHost: NSObject, WKScriptMessageHandlerWithReply {
             }
         }
         load(0, [])
+    }
+    // Only the replaced slot is silenced; the transport and other units keep running.
+    private func removeTrack(_ index: Int) {
+        pending.removeAll { $0.track == index }
+        active = active.filter { $0.key / 128 != index }
+        if let old = units.removeValue(forKey: index) {
+            old.auAudioUnit.reset()
+            engine.disconnectNodeOutput(old); engine.detach(old)
+        }
+        if let old = mixers.removeValue(forKey: index) { engine.disconnectNodeOutput(old); engine.detach(old) }
+        assignments.removeValue(forKey: index)
     }
     private func failure(_ message: String) -> NSError { NSError(domain: "Loopfield.AUv3", code: 1, userInfo: [NSLocalizedDescriptionKey: message]) }
     private func startRendering() throws {

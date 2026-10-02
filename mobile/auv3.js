@@ -1,7 +1,7 @@
 import {hasInstruments,nativeNoteEvents} from '../auv3-model.js';
 import {icon} from '../icons.js';
 export function createAUHost({bridge=globalThis.webkit?.messageHandlers?.loopfieldAU,onError=()=>{}}={}){
- let applied='',ready=false,busy=Promise.resolve(),token=0,latestMix='';
+ let applied='',ready=false,busy=Promise.resolve(),token=0,latestMix='',replacing=false;
  const call=(action,data={})=>bridge?bridge.postMessage({action,...data}):Promise.reject(Error('AUv3 instruments require the iOS app.'));
  const signature=p=>JSON.stringify(p.instruments??Array(8).fill(null));
  const host={
@@ -19,11 +19,26 @@ export function createAUHost({bridge=globalThis.webkit?.messageHandlers?.loopfie
     if(result.errors?.length)throw Error(result.errors.join('\n'));
    });return busy;
   },
+  async replace(p,index,slot,isPlaying){
+   const requested=token,next={...p,instruments:[...(p.instruments??Array(8).fill(null))]};next.instruments[index]=slot;
+   replacing=true;
+   try{
+    busy=busy.catch(()=>{}).then(async()=>{
+     if(requested!==token)throw new DOMException('Cancelled','AbortError');
+     const result=await call('configure',{slots:next.instruments});
+     if(requested!==token)throw new DOMException('Cancelled','AbortError');
+     if(result.errors?.length)throw Error(result.errors.join('\n'));
+     if(isPlaying()&&hasInstruments(next))await call('start');
+     if(requested!==token)throw new DOMException('Cancelled','AbortError');
+     applied=signature(next);ready=true;latestMix='';
+    });await busy;return next.instruments;
+   }catch(error){host.invalidate();throw error;}finally{replacing=false;}
+  },
   async start(p){const generation=token;await host.prepare(p);if(generation!==token)throw new DOMException('Cancelled','AbortError');if(hasInstruments(p)){await call('start');if(generation!==token)throw new DOMException('Cancelled','AbortError');latestMix='';host.mix(p,p.patterns[p.pattern]);}},
   schedule(i,notes,ctx,p){if(!p.instruments?.[i])return;call('notes',{track:i,events:nativeNoteEvents(notes,ctx)}).catch(onError);},
   mix(p,tracks){if(!hasInstruments(p)||!ready)return;const data={master:p.master,tracks:tracks.map(t=>({volume:t.volume,pan:t.pan,mute:t.mute||tracks.some(x=>x.solo)&&!t.solo}))},key=JSON.stringify(data);if(key===latestMix)return;latestMix=key;call('mix',data).catch(error=>{latestMix='';onError(error);});},
   async stop(){token++;if(bridge)await call('stop').catch(onError);},
-  async states(p){if(!ready||signature(p)!==applied)return null;const result=await call('states');return result.slots;},
+  async states(p){if(replacing||!ready||signature(p)!==applied)return null;const result=await call('states');return result.slots;},
   accept(p){applied=signature(p);},
   list:()=>call('list'),
   async show(i){await call('show',{track:i});},

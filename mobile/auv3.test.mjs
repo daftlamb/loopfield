@@ -33,3 +33,17 @@ test('plugin state capture does not reinstantiate unchanged tracks and mix follo
 test('browser playback cannot quietly use built-in sound; AUv3 WAV export is explicitly rejected',async()=>{
  const host=createAUHost({bridge:null});await assert.rejects(host.start(project()),/iOS/);await assert.rejects(renderWav(project()),/AUv3/);
 });
+test('live replacement retains the project until loaded and never sends stop',async()=>{
+ let complete;const calls=[];
+ const host=createAUHost({bridge:{postMessage:msg=>{calls.push(msg);if(msg.action==='configure'&&complete===undefined)return Promise.resolve({errors:[]});if(msg.action==='configure')return new Promise(r=>complete=r);return Promise.resolve({});}}});
+ const p=project();await host.start(p);complete=null;
+ const original=JSON.stringify(p),slot={id:'1635085685:99:5678',name:'New synth'};
+ const change=host.replace(p,0,slot,()=>true);await new Promise(r=>setImmediate(r));
+ assert.equal(JSON.stringify(p),original);assert.equal(await host.states(p),null);
+ complete({errors:[]});const slots=await change;assert.deepEqual(slots[0],slot);assert.ok(!calls.some(c=>c.action==='stop'));
+});
+test('user stop during live replacement cancels it without restarting',async()=>{
+ let complete;const calls=[],host=createAUHost({bridge:{postMessage:msg=>{calls.push(msg.action);return msg.action==='configure'?new Promise(r=>complete=r):Promise.resolve({});}}});
+ const change=host.replace(project(),0,null,()=>true);await new Promise(r=>setImmediate(r));await host.stop();complete({errors:[]});
+ await assert.rejects(change,{name:'AbortError'});assert.ok(!calls.includes('start'));
+});
