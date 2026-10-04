@@ -3,6 +3,7 @@ export function installHelp({locale,shake,changeLanguage,typography,projects,loa
  const button=document.querySelector('#shellHelp');
  const panel=document.createElement('dialog');panel.id='helpDialog';panel.setAttribute('data-no-i18n','');document.body.append(panel);
  const guides=[
+ ['PRIVACY','隐私','Loopfield has no accounts, ads, analytics or tracking. Projects stay on your device unless you export or share them. Optional AUv3 apps follow their own privacy policies. Support: daftlamb@gmail.com. Full policy: github.com/daftlamb/loopfield-support','Loopfield 无需账号，不含广告、统计或追踪。工程保存在设备上，除非你主动导出或分享。可选的 AUv3 插件适用其各自的隐私政策。支持邮箱：daftlamb@gmail.com。完整政策：github.com/daftlamb/loopfield-support'],
  ['PLAY','播放','Start or stop the loop. Audio pauses when the app enters the background.','点按播放或停止。进入后台时自动暂停。'],
  ['SEQUENCE','音序','Tap a step to switch it on or off. New notes continue your last edited pitch on that track. Hold and drag up or down to edit the selected parameter. Each pattern has two pages of 16 steps.','点按格子开关音符，新开启的音符沿用当前音轨上次编辑的音高。长按后上下拖动可调整当前参数。每个乐段共 32 步，分为两页。'],
  ['RANDOM','随机参数','Choose NOTE, VEL, CHANCE, RATCH or GATE, then open TOOLS and tap RANDOM. It changes that parameter on the current track. Use UNDO to restore it.','先选择音高、力度、概率、连击或门限，再打开工具点随机按钮；仅影响当前音轨。点撤销可恢复。'],
