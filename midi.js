@@ -1,5 +1,5 @@
 import {gateDuration,ratchetOffsets} from './model.js';
-import {arpEvents,modValue} from './modulation.js';
+import {arpEvents,modValue,routeFor} from './modulation.js';
 
 export function midiNotes(track,step,time,duration,bpm,origin=0){
   const notes=[],count=step.ratchet??1,spacing=duration/count;
@@ -17,7 +17,7 @@ export function midiNotes(track,step,time,duration,bpm,origin=0){
 
 export class MidiOut{
   constructor(onError=()=>{},now=()=>performance.now()){
-    this.onError=onError;this.now=now;this.port=null;this.channels=Array.from({length:8},(_,i)=>i+1);this.queue=[];this.active=new Map();this.used=new Set();this.serial=0;
+    this.onError=onError;this.now=now;this.port=null;this.channels=Array.from({length:8},(_,i)=>i+1);this.queue=[];this.active=new Map();this.used=new Set();this.serial=0;this.pressureChannels=new Set();this.lastTriggers=new Map();
   }
   async connect(port){this.panic();const previous=this.port;this.port=null;if(previous)await previous.close();if(port){await port.open();this.port=port;}}
   setChannel(track,channel){this.panic();this.channels[track]=channel;}
@@ -25,9 +25,28 @@ export class MidiOut{
     if(!this.port||!this.channels[track])return;
     this.queue=this.queue.filter(e=>!(e.track===track&&e.arp&&e.time>=start));
     this.queue.push({type:'cut',track,time:start});
+    this.lastTriggers.set(track,start);
     const channel=this.channels[track]-1;
     for(const note of notes){const token=++this.serial;this.queue.push({...note,type:'on',track,channel,token});this.queue.push({...note,type:'off',track,channel,token,time:note.time+note.duration});}
     this.queue.sort((a,b)=>a.time-b.time||({cut:0,off:1,on:2}[a.type]-{cut:0,off:1,on:2}[b.type]));
+  }
+  schedulePressure(tracks,start,duration,bpm,origins){
+    if(!this.port)return;
+    const active=new Set();
+    for(const [target,channel] of [['midi.pressureLeft',0],['midi.pressureRight',2]]){
+      let owner=-1;
+      tracks.forEach((track,i)=>{if(!track.mute&&(!tracks.some(t=>t.solo)||track.solo)&&routeFor(track.mod,target))owner=i;});
+      if(owner<0){if(this.pressureChannels.has(channel))this.queue.push({type:'cc',channel,value:0,time:start});continue;}
+      active.add(channel);this.used.add(channel);
+      const origin=origins[owner],trigger=this.lastTriggers.get(owner)??origin,count=Math.max(1,Math.ceil(duration*100));
+      for(let i=0;i<count;i++){
+        const time=start+duration*i/count;
+        const value=Math.round(modValue(tracks[owner].mod,target,0,time-origin,trigger-origin,bpm)*127/100);
+        this.queue.push({type:'cc',channel,value:Math.max(0,Math.min(127,value)),time});
+      }
+    }
+    this.pressureChannels=active;
+    this.queue.sort((a,b)=>a.time-b.time);
   }
   send(data,time){try{this.port?.send(data,time);}catch{this.queue=[];this.active.clear();this.port=null;this.onError('MIDI 输出已断开，请重新连接');}}
   flush(ctx){
@@ -35,6 +54,7 @@ export class MidiOut{
     const stamp=ctx.getOutputTimestamp?.(),offset=stamp?.performanceTime?stamp.performanceTime-stamp.contextTime*1000:this.now()-ctx.currentTime*1000;
     while(this.queue.length&&this.queue[0].time<=ctx.currentTime+.02){
       const e=this.queue.shift(),at=Math.max(this.now(),offset+e.time*1000);
+      if(e.type==='cc'){this.send([0xb0+e.channel,1,e.value],at);continue;}
       if(e.type==='cut'){
         for(const [key,voice] of this.active)if(voice.track===e.track&&voice.arp){this.send([0x80+voice.channel,voice.note,0],at);this.active.delete(key);}continue;
       }
@@ -49,8 +69,9 @@ export class MidiOut{
     this.queue=[];
     if(this.port){
       try{this.port.clear();}catch{}
+      for(const channel of this.pressureChannels)this.send([0xb0+channel,1,0]);
       for(const channel of this.used){this.send([0xb0+channel,64,0]);this.send([0xb0+channel,123,0]);this.send([0xb0+channel,120,0]);}
     }
-    this.active.clear();this.used.clear();
+    this.active.clear();this.used.clear();this.pressureChannels.clear();this.lastTriggers.clear();
   }
 }

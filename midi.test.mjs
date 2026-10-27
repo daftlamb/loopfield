@@ -54,3 +54,27 @@ test('OFF routing emits nothing and device changes close the old port',async()=>
   midi.schedule(0,[{time:0,note:60,velocity:100,duration:1}],0);midi.flush(ctx);assert.equal(sent.length,0);
   let closed=false;midi.port.close=async()=>{closed=true;};await midi.connect(null);assert.equal(closed,true);assert.equal(midi.port,null);
 });
+
+
+test('pressure LFO reaches Tabla between notes and releases on mute and panic',async()=>{
+  const {dispatchMidi}=await import('../tabla-study/midi.js');
+  const {midi,ctx,sent}=rig(),tracks=makeProject().patterns[0],origins=tracks.map(()=>0);
+  Object.assign(tracks[0].mod.lfos[0],{enabled:true,points:Array(16).fill(1),routes:[{target:'midi.pressureLeft',from:0,to:100}]});
+  Object.assign(tracks[2].mod.lfos[0],{enabled:true,points:Array(16).fill(.5),routes:[{target:'midi.pressureRight',from:0,to:100}]});
+  midi.schedulePressure(tracks,0,.1,120,origins);ctx.currentTime=.08;midi.flush(ctx);
+  const pressures=[];
+  for(const e of sent)dispatchMidi(e.data,{hit:()=>assert.fail('CC must not hit'),stop:()=>{},pressure:(...v)=>pressures.push(v)});
+  assert.ok(pressures.some(([c,v])=>c===0&&v===1));assert.ok(pressures.some(([c,v])=>c===1&&v===64/127));
+  assert.ok(sent.filter(e=>e.data[0]===0xb0).length>=9);
+  tracks[0].mute=true;midi.schedulePressure(tracks,.1,.1,120,origins);ctx.currentTime=.1;midi.flush(ctx);
+  assert.ok(sent.some(e=>e.data[0]===0xb0&&e.data[2]===0));
+  midi.panic();assert.ok(sent.some(e=>e.data?.[0]===0xb2&&e.data[1]===1&&e.data[2]===0));assert.equal(midi.queue.length,0);
+});
+
+test('pressure retrigger phase, range and duplicate owner are deterministic',()=>{
+  const {midi,ctx,sent}=rig(),tracks=makeProject().patterns[0],origins=tracks.map(()=>0);
+  Object.assign(tracks[0].mod.lfos[0],{enabled:true,routes:[{target:'midi.pressureLeft',from:0,to:100}]});
+  Object.assign(tracks[1].mod.lfos[0],{enabled:true,retrigger:true,routes:[{target:'midi.pressureLeft',from:25,to:75}]});
+  midi.lastTriggers.set(1,1);midi.schedulePressure(tracks,1,.1,120,origins);ctx.currentTime=1;midi.flush(ctx);
+  assert.deepEqual(sent[0].data,[0xb0,1,32]);
+});

@@ -81,6 +81,7 @@ export class Engine{
       if(this.nextStep===0&&this.pendingPattern!==null){this.activePattern=this.pendingPattern;this.pendingPattern=null;}
       const song=p.playMode==='song'?songOrder(p)[this.songPosition]:null,pattern=song?song.pattern:this.activePattern,tracks=p.patterns[pattern],step=this.nextStep;let hits=[];
       tracks.forEach((t,i)=>{const s=t.steps[step];if(audible(tracks,t)&&s.on&&Math.random()<s.probability){playStep(this.ctx,this.bus.tracks[i]??this.bus,t,s,this.nextTime,stepDuration(p.bpm,p.swing,step),p.bpm);this.midi?.schedule(i,midiNotes(t,s,this.nextTime,stepDuration(p.bpm,p.swing,step),p.bpm,this.bus.tracks[i].origin),this.nextTime);hits.push(i);}const bus=this.bus?.tracks[i];if(bus)modulateStep(bus,t,p.trackFx[i],this.nextTime,stepDuration(p.bpm,p.swing,step),p.bpm);});
+      this.midi?.schedulePressure(tracks,this.nextTime,stepDuration(p.bpm,p.swing,step),p.bpm,this.bus.tracks.map(bus=>bus.origin));
       this.queue.push({time:this.nextTime,step,hits,pattern,song});this.nextTime+=stepDuration(p.bpm,p.swing,step);this.nextStep=(step+1)%STEPS;
       if(this.nextStep===0&&p.playMode==='song'){const next=nextSongPosition(p,this.songPosition);if(next===null){this.ended=true;this.queue.push({time:this.nextTime+projectTail(p),ended:true});break;}this.songPosition=next;}
     }

@@ -4,3 +4,13 @@ dist/
 .env*
 .dev.vars*
 *.log
+
+# Handheld build outputs and device diagnostics
+handheld/checks/
+handheld/vendor/python/
+handheld/release/
+handheld/*.zip
+handheld/package/Loopfield/loopfield
+handheld/package/Loopfield/pixel.ttf
+handheld/package/Loopfield/*.bmp
+!handheld/package/Loopfield/icon.bmp

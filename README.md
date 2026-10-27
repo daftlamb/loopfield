@@ -1,5 +1,17 @@
 # LOOPFIELD
 
+## Loopfield Pocket / TRIMUI Brick
+
+Windows 上开发的 ARM64 原生掌机版，1024×768、SDL2 / ALSA。八轨音序、WAV / Slice、限定随机游走、条件触发、Mixer、Punch-in 和 Pluck / Bell / Marimba。
+
+- [掌机说明与构建](handheld/README.md)
+- [图形速查表：按键与现场操作](handheld/docs/cheat-sheet-01.png) · [制作与演化](handheld/docs/cheat-sheet-02.png)
+- [两页 PDF 下载](handheld/docs/Loopfield-Brick-Cheat-Sheet.pdf) · [可编辑 SVG 与 HTML](handheld/docs/)
+- [下载 TRIMUI 安装包](https://github.com/daftlamb/loopfield/releases/tag/pocket-v0.1.0)
+
+掌机版源码与网页版分开，原始项目 JSON 可互相读取；掌机专有声音与调制扩展暂不由网页版播放。用户提供的第三方钢琴采样不随仓库分发。
+
+
 本地浏览器合成器原型。参考用户提供的视频中的低彩度字符界面与参数矩阵，独立实现音频和界面。
 
 ## 启动
@@ -20,7 +32,13 @@
 - WAV 可选择当前 Pattern 或整首 Song（按编排播放一遍，不无限循环），44.1kHz 立体声并保留 FX 尾音；概率音符每次渲染结果可能不同。较长的整曲离线渲染会占用更多内存。
 - 画面仅使用 ASCII，默认每 12 秒随机轮播，也可固定场景。角色按统一区域缩放居中，不显示画内字幕。
 
-## 验证
+## 泛音 MIDI 接收
+
+MIDI OUT 可选择「泛音 · 浏览器直连」，再点「打开泛音」，在接收页开启「接收 Loopfield」。默认接收 CH 1，可切换通道与钢鼓 / 手碟音色。直连传送标准 MIDI 音符、力度与关音消息，不需要虚拟 MIDI 驱动；两个页面须在同一站点、同一浏览器中运行。
+
+构建会将相邻 `pan-garden/dist` 打包到 `/pan-garden/`。若两个项目不相邻，先设置 `PAN_GARDEN_DIR` 为该目录的绝对路径，再执行 `npm run build`。本地 `server.mjs` 从构建后的 `dist/pan-garden` 提供接收页。
+
+## 测试
 
 `npm test` 验证节拍、项目迁移、Pattern 独立性、Song 重复与边界切换。`/song-test.html` 验证整曲 WAV 时长和实际音频输出。打开 `/audio-test.html` 点击按钮，离线验证 8 种初始音色、WAV 编码和静音路由。
 

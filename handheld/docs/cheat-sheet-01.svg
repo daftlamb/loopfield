@@ -1,0 +1,131 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1018" viewBox="0 0 1440 1018"><rect width="100%" height="100%" fill="#f6f5ef"/>
+<rect x="0" y="0" width="1440" height="1018" rx="0" fill="#f6f5ef" stroke="none"/>
+<text x="56" y="66" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="44" fill="#25302d">LOOPFIELD POCKET</text>
+<text x="56" y="113" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="28" fill="#2f765c">现场操作 / 从按键位置开始</text>
+<text x="56" y="148" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="20" fill="#65716b">先用 START 播放；用 A 开关格子，再用 B + 方向键编辑。</text>
+<path d="M56,166 L1384,166" fill="none" stroke="#25302d" stroke-width="1.3"/>
+<text x="56" y="982" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="17" fill="#65716b">TRIMUI BRICK  /  2026.10  /  按住 + 组合键；单按 X / Y / L / R 松键执行</text>
+<text x="1260" y="982" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="18" fill="#25302d">1 / 2</text>
+<text x="56" y="208" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="23" fill="#2f765c">按真实正面布局绘制</text>
+<rect x="210" y="228" width="82" height="27" rx="7" fill="#dce9df" stroke="#2f765c"/>
+<text x="236" y="248" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="21" fill="#2f765c">L</text>
+<rect x="464" y="228" width="82" height="27" rx="7" fill="#dce9df" stroke="#2f765c"/>
+<text x="490" y="248" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="21" fill="#2f765c">R</text>
+<text x="307" y="246" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="19" fill="#65716b">背部肩键</text>
+<rect x="198" y="256" width="356" height="526" rx="20" fill="#d9dcd5" stroke="#25302d"/>
+<rect x="209" y="267" width="334" height="246" rx="7" fill="#27312e" stroke="none"/>
+<rect x="223" y="282" width="306" height="217" rx="2" fill="#e9eee4" stroke="none"/>
+<text x="238" y="312" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="25" fill="#2f765c">LOOPFIELD</text>
+<path d="M236,325 L515,325" fill="none" stroke="#2f765c" stroke-width="1.3"/>
+<rect x="238" y="342" width="30" height="27" rx="2" fill="none" stroke="#a5b5a5"/>
+<text x="241" y="362" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="13" fill="#2f765c">C4</text>
+<rect x="272" y="342" width="30" height="27" rx="2" fill="none" stroke="#a5b5a5"/>
+<rect x="306" y="342" width="30" height="27" rx="2" fill="none" stroke="#a5b5a5"/>
+<rect x="340" y="342" width="30" height="27" rx="2" fill="none" stroke="#a5b5a5"/>
+<rect x="374" y="342" width="30" height="27" rx="2" fill="none" stroke="#a5b5a5"/>
+<rect x="408" y="342" width="30" height="27" rx="2" fill="#2f765c" stroke="#a5b5a5"/>
+<text x="411" y="362" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="13" fill="#f6f5ef">E4</text>
+<rect x="442" y="342" width="30" height="27" rx="2" fill="none" stroke="#a5b5a5"/>
+<rect x="476" y="342" width="30" height="27" rx="2" fill="none" stroke="#a5b5a5"/>
+<rect x="238" y="376" width="30" height="27" rx="2" fill="none" stroke="#a5b5a5"/>
+<text x="241" y="396" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="13" fill="#2f765c">G4</text>
+<rect x="272" y="376" width="30" height="27" rx="2" fill="none" stroke="#a5b5a5"/>
+<rect x="306" y="376" width="30" height="27" rx="2" fill="none" stroke="#a5b5a5"/>
+<rect x="340" y="376" width="30" height="27" rx="2" fill="none" stroke="#a5b5a5"/>
+<rect x="374" y="376" width="30" height="27" rx="2" fill="none" stroke="#a5b5a5"/>
+<rect x="408" y="376" width="30" height="27" rx="2" fill="none" stroke="#a5b5a5"/>
+<rect x="442" y="376" width="30" height="27" rx="2" fill="none" stroke="#a5b5a5"/>
+<text x="445" y="396" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="13" fill="#2f765c">A4</text>
+<rect x="476" y="376" width="30" height="27" rx="2" fill="none" stroke="#a5b5a5"/>
+<rect x="238" y="410" width="30" height="27" rx="2" fill="none" stroke="#a5b5a5"/>
+<rect x="272" y="410" width="30" height="27" rx="2" fill="none" stroke="#a5b5a5"/>
+<rect x="306" y="410" width="30" height="27" rx="2" fill="none" stroke="#a5b5a5"/>
+<rect x="340" y="410" width="30" height="27" rx="2" fill="none" stroke="#a5b5a5"/>
+<rect x="374" y="410" width="30" height="27" rx="2" fill="none" stroke="#a5b5a5"/>
+<rect x="408" y="410" width="30" height="27" rx="2" fill="none" stroke="#a5b5a5"/>
+<rect x="442" y="410" width="30" height="27" rx="2" fill="none" stroke="#a5b5a5"/>
+<rect x="476" y="410" width="30" height="27" rx="2" fill="none" stroke="#a5b5a5"/>
+<rect x="238" y="444" width="30" height="27" rx="2" fill="none" stroke="#a5b5a5"/>
+<rect x="272" y="444" width="30" height="27" rx="2" fill="none" stroke="#a5b5a5"/>
+<rect x="306" y="444" width="30" height="27" rx="2" fill="none" stroke="#a5b5a5"/>
+<rect x="340" y="444" width="30" height="27" rx="2" fill="none" stroke="#a5b5a5"/>
+<rect x="374" y="444" width="30" height="27" rx="2" fill="none" stroke="#a5b5a5"/>
+<rect x="408" y="444" width="30" height="27" rx="2" fill="none" stroke="#a5b5a5"/>
+<rect x="442" y="444" width="30" height="27" rx="2" fill="none" stroke="#a5b5a5"/>
+<rect x="476" y="444" width="30" height="27" rx="2" fill="none" stroke="#a5b5a5"/>
+<text x="237" y="490" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="15" fill="#2f765c">08 TRACKS  /  32 STEPS</text>
+<rect x="332" y="533" width="35" height="11" rx="5" fill="#f5f5f0" stroke="#25302d"/>
+<rect x="386" y="533" width="35" height="11" rx="5" fill="#f5f5f0" stroke="#25302d"/>
+<text x="327" y="527" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="13" fill="#65716b">Fn1</text>
+<text x="383" y="527" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="13" fill="#65716b">Fn2</text>
+<rect x="258" y="551" width="28" height="83" rx="3" fill="#25302d" stroke="none"/>
+<rect x="231" y="578" width="82" height="29" rx="3" fill="#25302d" stroke="none"/>
+<text x="56" y="566" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="23" fill="#2f765c">方向键</text>
+<text x="56" y="598" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="19" fill="#65716b">移动 / 改值</text>
+<path d="M165,586 L228,586" fill="none" stroke="#2f765c" stroke-width="1.3"/>
+<circle cx="470" cy="552" r="23" fill="#25302d" stroke="none"/>
+<text x="462" y="560" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="23" fill="#f6f5ef">X</text>
+<circle cx="434" cy="588" r="23" fill="#25302d" stroke="none"/>
+<text x="426" y="596" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="23" fill="#f6f5ef">Y</text>
+<circle cx="506" cy="588" r="23" fill="#25302d" stroke="none"/>
+<text x="498" y="596" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="23" fill="#f6f5ef">A</text>
+<circle cx="470" cy="624" r="23" fill="#25302d" stroke="none"/>
+<text x="462" y="632" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="23" fill="#f6f5ef">B</text>
+<text x="579" y="568" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="20" fill="#25302d">X / 编辑项</text>
+<text x="579" y="598" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="20" fill="#25302d">A / 开关格</text>
+<text x="579" y="628" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="20" fill="#25302d">B / 试听</text>
+<text x="579" y="658" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="20" fill="#25302d">Y / 换页</text>
+<path d="M530,588 L568,588" fill="none" stroke="#2f765c" stroke-width="1.3"/>
+<circle cx="326" cy="738" r="15" fill="#25302d" stroke="none"/>
+<text x="320" y="744" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="16" fill="#f6f5ef">M</text>
+<text x="301" y="812" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="14" fill="#65716b">MENU</text>
+<path d="M326,756 L326,792" fill="none" stroke="#65716b" stroke-width="1.3"/>
+<circle cx="376" cy="738" r="15" fill="#25302d" stroke="none"/>
+<text x="370" y="744" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="16" fill="#f6f5ef">-</text>
+<text x="351" y="812" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="14" fill="#65716b">SELECT</text>
+<path d="M376,756 L376,792" fill="none" stroke="#65716b" stroke-width="1.3"/>
+<circle cx="426" cy="738" r="15" fill="#25302d" stroke="none"/>
+<text x="420" y="744" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="16" fill="#f6f5ef">&gt;</text>
+<text x="401" y="812" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="14" fill="#65716b">START</text>
+<path d="M426,756 L426,792" fill="none" stroke="#65716b" stroke-width="1.3"/>
+<circle cx="230" cy="725" r="1.5" fill="#65716b" stroke="none"/>
+<circle cx="237" cy="725" r="1.5" fill="#65716b" stroke="none"/>
+<circle cx="244" cy="725" r="1.5" fill="#65716b" stroke="none"/>
+<circle cx="251" cy="725" r="1.5" fill="#65716b" stroke="none"/>
+<circle cx="258" cy="725" r="1.5" fill="#65716b" stroke="none"/>
+<circle cx="487" cy="725" r="1.5" fill="#65716b" stroke="none"/>
+<circle cx="494" cy="725" r="1.5" fill="#65716b" stroke="none"/>
+<circle cx="501" cy="725" r="1.5" fill="#65716b" stroke="none"/>
+<circle cx="508" cy="725" r="1.5" fill="#65716b" stroke="none"/>
+<circle cx="515" cy="725" r="1.5" fill="#65716b" stroke="none"/>
+<rect x="56" y="830" width="608" height="118" rx="10" fill="#ffffff" stroke="#d5dcd4"/>
+<rect x="56" y="830" width="5" height="118" rx="2" fill="#2f765c" stroke="none"/>
+<text x="80" y="868" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="25" fill="#2f765c">30 秒开始</text>
+<text x="80" y="905" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="21" fill="#25302d">START 播放 → A 开格 → B + 方向键改音高。</text>
+<text x="80" y="934" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="21" fill="#25302d">Fn1/Fn2 沿用系统设置，本版没有专用操作。</text>
+<rect x="720" y="192" width="664" height="206" rx="10" fill="#ffffff" stroke="#d5dcd4"/>
+<rect x="720" y="192" width="5" height="206" rx="2" fill="#2f765c" stroke="none"/>
+<text x="744" y="230" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="25" fill="#2f765c">基本操作</text>
+<text x="744" y="267" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="21" fill="#25302d">方向键移动；B + 方向键修改当前编辑值。</text>
+<text x="744" y="296" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="21" fill="#25302d">X 切 NOTE / VEL / CHANCE / GATE 等编辑项。</text>
+<text x="744" y="325" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="21" fill="#25302d">Y 下一页；按住 Y + ← 返回上一页。</text>
+<text x="744" y="354" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="21" fill="#25302d">L / R 切换音轨；MENU 循环切颜色主题。</text>
+<rect x="720" y="416" width="664" height="235" rx="10" fill="#ffffff" stroke="#d5dcd4"/>
+<rect x="720" y="416" width="5" height="235" rx="2" fill="#2f765c" stroke="none"/>
+<text x="744" y="454" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="25" fill="#2f765c">SELECT 层 / 工程与运输</text>
+<text x="744" y="491" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="21" fill="#25302d">SELECT + L / R：切 Pattern，播放时等轮末。</text>
+<text x="744" y="520" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="21" fill="#25302d">SELECT + ↑ / ↓：总音量；+ ← / →：BPM。</text>
+<text x="744" y="549" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="21" fill="#25302d">SELECT + A / B：当前轨静音 / 独奏。</text>
+<text x="744" y="578" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="21" fill="#25302d">SELECT + X / Y：保存 / 读取工程。</text>
+<text x="744" y="607" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="21" fill="#25302d">SELECT + START：保存并退出应用。</text>
+<rect x="720" y="669" width="664" height="173" rx="10" fill="#ffffff" stroke="#d5dcd4"/>
+<rect x="720" y="669" width="5" height="173" rx="2" fill="#bd593b" stroke="none"/>
+<text x="744" y="707" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="25" fill="#bd593b">Punch-in / 总输出临时 FX</text>
+<text x="744" y="744" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="21" fill="#25302d">按住 L + R，再按 A 碎切 / B 失真 / X 回声 / Y 滤波。</text>
+<text x="744" y="773" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="21" fill="#25302d">继续按住效果键，用 ← / → 调力度，每次 5%。</text>
+<text x="744" y="802" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="21" fill="#25302d">可叠加；箭头指示调节对象；松键恢复原声。</text>
+<rect x="720" y="860" width="664" height="88" rx="10" fill="#ffffff" stroke="#d5dcd4"/>
+<rect x="720" y="860" width="5" height="88" rx="2" fill="#2f765c" stroke="none"/>
+<text x="744" y="898" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="25" fill="#2f765c">X 层 / 音高与调式</text>
+<text x="744" y="935" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="21" fill="#25302d">X + ←/→ 半音；+ ↑/↓ 八度；+ L/R 调式；+ A/B 根音。</text>
+</svg>

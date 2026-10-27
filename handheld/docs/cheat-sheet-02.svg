@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1018" viewBox="0 0 1440 1018"><rect width="100%" height="100%" fill="#f6f5ef"/>
+<rect x="0" y="0" width="1440" height="1018" rx="0" fill="#f6f5ef" stroke="none"/>
+<text x="56" y="66" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="44" fill="#25302d">LOOPFIELD POCKET</text>
+<text x="56" y="113" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="28" fill="#2f765c">制作与演化 / 按页面查操作</text>
+<text x="56" y="148" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="20" fill="#65716b">普通 FX 可以单轨；Punch-in 当前作用于总输出。参数更改会自动保存。</text>
+<path d="M56,166 L1384,166" fill="none" stroke="#25302d" stroke-width="1.3"/>
+<text x="56" y="982" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="17" fill="#65716b">TRIMUI BRICK  /  2026.10  /  按住 + 组合键；单按 X / Y / L / R 松键执行</text>
+<text x="1260" y="982" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="18" fill="#25302d">2 / 2</text>
+<rect x="56" y="192" width="650" height="230" rx="10" fill="#ffffff" stroke="#d5dcd4"/>
+<rect x="56" y="192" width="5" height="230" rx="2" fill="#2f765c" stroke="none"/>
+<text x="80" y="230" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="25" fill="#2f765c">01  音序 / 条件触发</text>
+<text x="80" y="267" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="21" fill="#25302d">X 切编辑项，B + 方向键修改，A 开关 step。</text>
+<text x="80" y="296" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="21" fill="#25302d">SLICE 选具体切片；COND 选触发条件。</text>
+<text x="80" y="325" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="21" fill="#25302d">ALL 每轮；1ST 首轮；LATE 第二轮开始。</text>
+<text x="80" y="354" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="21" fill="#25302d">1/2、2/2 交替轮；1/4…4/4 指定四轮中的一轮。</text>
+<text x="80" y="383" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="21" fill="#25302d">R 显示轮次；重新 START 从首轮重来。</text>
+<rect x="734" y="192" width="650" height="230" rx="10" fill="#ffffff" stroke="#d5dcd4"/>
+<rect x="734" y="192" width="5" height="230" rx="2" fill="#2f765c" stroke="none"/>
+<text x="758" y="230" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="25" fill="#2f765c">02  SOUND / 音色与调制</text>
+<text x="758" y="267" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="21" fill="#25302d">SOURCE 选择合成音色或 sample。</text>
+<text x="758" y="296" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="21" fill="#25302d">Pluck 拨弦；Bell 金属钟；Marimba 木质敲击。</text>
+<text x="758" y="325" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="21" fill="#25302d">上下选参数，左右调数值，B 试听。</text>
+<text x="758" y="354" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="21" fill="#25302d">MATERIAL 改泛音亮度；OVERTONE RATIO 改比例。</text>
+<text x="758" y="383" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="21" fill="#25302d">LFO 页 X 加映射；分轨 FX 映射须先开效果器。</text>
+<rect x="56" y="442" width="650" height="230" rx="10" fill="#ffffff" stroke="#d5dcd4"/>
+<rect x="56" y="442" width="5" height="230" rx="2" fill="#2f765c" stroke="none"/>
+<text x="80" y="480" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="25" fill="#2f765c">03  WAV / 切片</text>
+<text x="80" y="517" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="21" fill="#25302d">WAV 放入 TF 卡 Apps/Loopfield/samples/。</text>
+<text x="80" y="546" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="21" fill="#25302d">SOUND 选 sample，再选 WAV；EDIT SAMPLE 编辑。</text>
+<text x="80" y="575" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="21" fill="#25302d">START/END 左右步进 0.1s；B + 左右微调 1ms。</text>
+<text x="80" y="604" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="21" fill="#25302d">SLICES 设等分数；ASSIGN 行 A 分配到 32 步。</text>
+<text x="80" y="633" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="21" fill="#25302d">MODE 反向/循环；导出选区另存，不改原 WAV。</text>
+<rect x="734" y="442" width="650" height="230" rx="10" fill="#ffffff" stroke="#d5dcd4"/>
+<rect x="734" y="442" width="5" height="230" rx="2" fill="#2f765c" stroke="none"/>
+<text x="758" y="480" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="25" fill="#2f765c">04  WALK / 小范围演化</text>
+<text x="758" y="517" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="21" fill="#25302d">SOUND → SLICE WALK：off / slow / active。</text>
+<text x="758" y="546" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="21" fill="#25302d">WALK CHANGE %：0 保持，100 每次换片。</text>
+<text x="758" y="575" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="21" fill="#25302d">WALK SLICES：左右浏览，A 勾选，X 仅保留当前。</text>
+<text x="758" y="604" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="21" fill="#25302d">例如只勾 S1、S3、S5，再设变化概率 25%。</text>
+<text x="758" y="633" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="21" fill="#25302d">游走仅在勾选片中移动；条件跳过不推进游走。</text>
+<rect x="56" y="692" width="650" height="230" rx="10" fill="#ffffff" stroke="#d5dcd4"/>
+<rect x="56" y="692" width="5" height="230" rx="2" fill="#2f765c" stroke="none"/>
+<text x="80" y="730" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="25" fill="#2f765c">05  MIXER / 效果路由</text>
+<text x="80" y="767" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="21" fill="#25302d">SEQUENCE 中 Y + ← 直达 MIXER。</text>
+<text x="80" y="796" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="21" fill="#25302d">上下选行，X 换列，左右调增益/声像/路由。</text>
+<text x="80" y="825" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="21" fill="#25302d">track+bus：分轨及总线 FX；bus：仅总线 FX。</text>
+<text x="80" y="854" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="21" fill="#25302d">direct：绕过两级 FX，仍经过 Punch 与总增益。</text>
+<text x="80" y="883" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="21" fill="#25302d">FX 页 X 选 MASTER 或 TRACK 1–8，确认目标。</text>
+<rect x="734" y="692" width="650" height="230" rx="10" fill="#ffffff" stroke="#d5dcd4"/>
+<rect x="734" y="692" width="5" height="230" rx="2" fill="#2f765c" stroke="none"/>
+<text x="758" y="730" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="25" fill="#2f765c">06  文件 / 试听</text>
+<text x="758" y="767" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="21" fill="#25302d">SELECT + X 手动保存，编辑后也会自动保存。</text>
+<text x="758" y="796" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="21" fill="#25302d">PROJECT → IMPORT：载入 projects/ 中的 JSON。</text>
+<text x="758" y="825" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="21" fill="#25302d">WAV 与 JSON 分开保存，搬工程时要一起复制。</text>
+<text x="758" y="854" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="21" fill="#25302d">Tone-Check：A Pluck / B Bell / C Marimba。</text>
+<text x="758" y="883" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="21" fill="#25302d">Piano-Evolving：A 对照 / B 游走 / C 条件 / D 混合。</text>
+<text x="56" y="950" font-family="Microsoft YaHei,Noto Sans SC,sans-serif" font-size="15" fill="#65716b">外观参考：trimuistore.com 的 TRIMUI Brick 正面产品图；本表按本版已验证的按键映射标注。</text>
+</svg>
